@@ -1,11 +1,12 @@
+import glob
 import keras
 import os
 from skimage import io
-import glob
+
 
 def load_imageset(dataset_dir='./dataset-v11', dataset='NIR'):
     if dataset not in ('NIR', 'RED'):
-        raise RuntimeError('Unknown dataset type name, will abort');
+        raise RuntimeError('Unknown dataset type name, will abort')
     else:
         train = load_imageset_from_path(
             os.path.join(dataset_dir, 'train', dataset))
