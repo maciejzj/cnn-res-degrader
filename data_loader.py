@@ -47,12 +47,6 @@ def load_imgs_with_prefix(path, prefix):
     return imgs
 
 
-def rm_border_from_imgs(imgs, border_width=3):
-    for img in imgs:
-        img = util.crop(img, ((3, 3), (3, 3)))
-    return imgs
-
-
 def store_imgset_as_npy_files(dataset_dir='./dataset-v11', dataset_name='NIR'):
     '''
     Saves as:
@@ -61,6 +55,15 @@ def store_imgset_as_npy_files(dataset_dir='./dataset-v11', dataset_name='NIR'):
     '''
     dataset = load_imageset(dataset_dir=dataset_dir, dataset_name=dataset_name)
     np.save(dataset_name + ".npy", dataset)
+
+
+def rm_border_from_imgs(imgs, border_width=3):
+    ret = []
+    for img in imgs:
+        img = util.crop(img, ((border_width, border_width),
+                              (border_width, border_width)))
+        ret.append(img)
+    return ret
 
 
 if __name__ == "__main__":
