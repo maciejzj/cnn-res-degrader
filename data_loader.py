@@ -1,7 +1,7 @@
 import glob
-import keras
 import os
-from skimage import io
+import numpy as np
+from skimage import io, util
 
 
 def load_imageset(dataset_dir='./dataset-v11', dataset='NIR'):
@@ -48,5 +48,5 @@ def load_imgs_with_prefix(path, prefix):
 
 
 train, test = load_imageset()
-train_lr, train_lr_masks, train_hr = train
-test_lr, test_lr_masks, test_hr = test
+train_hr, train_lr, train_lr_masks = train
+test_ht, test_lr, test_lr_masks = test
