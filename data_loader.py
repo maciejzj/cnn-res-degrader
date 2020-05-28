@@ -1,30 +1,32 @@
 import glob
 import os
 import numpy as np
-from skimage import io, util
+from skimage import exposure, io, util, img_as_float
 
 
-def load_imageset(dataset_dir='./dataset-v11', dataset_name='NIR'):
+def load_imageset(dataset_dir='./dataset-v11', dataset_name='NIR', limit_per_scene=None):
     if dataset_name not in ('NIR', 'RED'):
         raise RuntimeError('Unknown dataset name, will abort')
     else:
         train = load_imageset_from_path(
-            os.path.join(dataset_dir, 'train', dataset_name))
+            os.path.join(dataset_dir, 'train', dataset_name),
+                limit_per_scene=limit_per_scene)
         test = load_imageset_from_path(
-            os.path.join(dataset_dir, 'test', dataset_name))
+            os.path.join(dataset_dir, 'test', dataset_name),
+                limit_per_scene=limit_per_scene)
         return (train, test)
 
 
-def load_imageset_from_path(path):
+def load_imageset_from_path(path, limit_per_scene=None):
     if not os.path.isdir(path):
         raise RuntimeError('Dataset path does not exist')
     else:
         hr, lr, lr_masks = [], [], []
         scenes = get_scenes(path)
         for scene in scenes:
-            lr += load_imgs_with_prefix(scene, 'LR')
-            lr_masks += load_imgs_with_prefix(scene, 'QM')
-            hr += load_imgs_with_prefix(scene, 'HR')
+            lr += load_imgs_with_prefix(scene, 'LR', limit_per_scene)
+            lr_masks += load_imgs_with_prefix(scene, 'QM', limit_per_scene)
+            hr += load_imgs_with_prefix(scene, 'HR', limit_per_scene)
         return (hr, lr, lr_masks)
 
 
@@ -36,36 +38,48 @@ def get_scenes(path):
     return scenes
 
 
-def load_imgs_with_prefix(path, prefix):
+def load_imgs_with_prefix(path, prefix, limit=None):
     imgs = []
     glob_path = os.path.join(path, prefix)
-    img_names = glob.glob(glob_path + '*')
+    img_names = sorted(glob.glob(glob_path + '*'))
+    if limit is not None:
+        img_names = img_names[:limit]
 
-    for img_name in sorted(img_names):
+    for img_name in img_names:
         print(img_name)
-        imgs.append(io.imread(img_name, as_gray=True))
+        img = io.imread(img_name, as_gray=True)
+        img = exposure.rescale_intensity(img, in_range='uint14')
+        img = img_as_float(img)
+        imgs.append(img)
     return imgs
 
 
-def store_imgset_as_npy_files(dataset_dir='./dataset-v11', dataset_name='NIR'):
+def store_imgset_as_npy_files(output_file_name, dataset_dir='./dataset-v11',
+                              dataset_name='NIR', limit_per_scene=None):
     '''
     Saves as:
         [ [train_hr, train_lr, train_lr_masks],
           [test_hr, test_lr, test_lr_masks] ]
     '''
-    dataset = load_imageset(dataset_dir=dataset_dir, dataset_name=dataset_name)
-    np.save(dataset_name + ".npy", dataset)
+    dataset = load_imageset(
+        dataset_dir=dataset_dir, dataset_name=dataset_name,
+        limit_per_scene=limit_per_scene)
+    np.save(output_file_name + ".npy", dataset)
 
 
 def rm_border_from_imgs(imgs, border_width=3):
     ret = []
+    crop_borders = ((border_width, border_width), (border_width, border_width))
     for img in imgs:
-        img = util.crop(img, ((border_width, border_width),
-                              (border_width, border_width)))
+        img = util.crop(img, crop_borders)
         ret.append(img)
     return ret
 
 
 if __name__ == "__main__":
-    store_imgset_as_npy_files(dataset_name="NIR")
-    store_imgset_as_npy_files(dataset_name="RED")
+    store_imgset_as_npy_files("nir", dataset_name="NIR")
+    store_imgset_as_npy_files("red", dataset_name="RED")
+    store_imgset_as_npy_files("nir-one-per-scene", dataset_name="NIR",
+                              limit_per_scene=1)
+    store_imgset_as_npy_files("red-one-per-scene", dataset_name="RED",
+                              limit_per_scene=1)
