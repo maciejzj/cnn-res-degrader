@@ -1,5 +1,14 @@
 # OS files
 .DS_Store
+*.swp
+
+# Training data
+dat*
+
+# Models, logs and tmp
+model
+log
+tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
