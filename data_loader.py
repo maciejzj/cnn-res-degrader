@@ -1,7 +1,7 @@
 import glob
 import os
 import numpy as np
-from skimage import exposure, io, util, img_as_float
+from skimage import exposure, io, util, img_as_float64
 
 
 def load_imageset(dataset_dir='./dataset-v11', dataset_name='NIR', limit_per_scene=None):
@@ -10,10 +10,10 @@ def load_imageset(dataset_dir='./dataset-v11', dataset_name='NIR', limit_per_sce
     else:
         train = load_imageset_from_path(
             os.path.join(dataset_dir, 'train', dataset_name),
-                limit_per_scene=limit_per_scene)
+            limit_per_scene=limit_per_scene)
         test = load_imageset_from_path(
             os.path.join(dataset_dir, 'test', dataset_name),
-                limit_per_scene=limit_per_scene)
+            limit_per_scene=limit_per_scene)
         return (train, test)
 
 
@@ -49,7 +49,7 @@ def load_imgs_with_prefix(path, prefix, limit=None):
         print(img_name)
         img = io.imread(img_name, as_gray=True)
         img = exposure.rescale_intensity(img, in_range='uint14')
-        img = img_as_float(img)
+        img = img_as_float64(img)
         imgs.append(img)
     return imgs
 
@@ -77,9 +77,9 @@ def rm_border_from_imgs(imgs, border_width=3):
 
 
 if __name__ == "__main__":
-    store_imgset_as_npy_files("nir", dataset_name="NIR")
-    store_imgset_as_npy_files("red", dataset_name="RED")
-    store_imgset_as_npy_files("nir-one-per-scene", dataset_name="NIR",
+    store_imgset_as_npy_files("dat-nir", dataset_name="NIR")
+    store_imgset_as_npy_files("dat-red", dataset_name="RED")
+    store_imgset_as_npy_files("dar-nir-one-per-scene", dataset_name="NIR",
                               limit_per_scene=1)
-    store_imgset_as_npy_files("red-one-per-scene", dataset_name="RED",
+    store_imgset_as_npy_files("dat-red-one-per-scene", dataset_name="RED",
                               limit_per_scene=1)
