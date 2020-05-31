@@ -6,7 +6,7 @@ from keras import layers
 from keras import losses
 from keras import optimizers
 from keras import backend as K
-from keras.callbacks import TensorBoard
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from matplotlib import pyplot as plt
 from skimage import io, util
 
@@ -20,16 +20,15 @@ def make_model():
     model = models.Sequential()
 
     model.add(layers.InputLayer(input_shape=(378, 378, 1)))
-
-    model.add(layers.Conv2D(66, kernel_size=3,
+    model.add(layers.Conv2D(64, kernel_size=3,
                             padding='same', activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
 
-    model.add(layers.Conv2D(32, kernel_size=3,
+    model.add(layers.Conv2D(64, kernel_size=3,
                             padding='same', activation='relu'))
     model.add(layers.MaxPooling2D((3, 3)))
 
-    model.add(layers.Conv2DTranspose(32, kernel_size=3, padding='same', activation='relu',
+    model.add(layers.Conv2DTranspose(64, kernel_size=3, padding='same', activation='relu',
                                      strides=2))
 
     model.add(layers.Conv2D(1, kernel_size=3,
@@ -50,13 +49,18 @@ model.compile(loss=losses.MeanSquaredError(),
               metrics=['mae']
               )
 
+train_tim = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
+tb = TensorBoard(log_dir='log/fit-' + train_tim)
+es = EarlyStopping(monitor='val_loss', mode='min',
+                   min_delta=0.0025, patience=5, verbose=1)
+mc = ModelCheckpoint('log/model-' + train_tim + '.h5', monitor='val_loss',
+                     mode='min', save_best_only=True, verbose=1)
 
 model.summary()
 model.fit(x, y,
           validation_split=0.2,
-          epochs=16,
-          callbacks=[TensorBoard(log_dir='log/fit-' +
-                                 datetime.now().strftime("%y-%m-%d-%H:%M:%S"))]
+          epochs=10,
+          callbacks=[tb, es, mc]
           )
 
 p = model.predict(x[0].reshape(1, 378, 378, 1))

@@ -24,9 +24,9 @@ def load_imageset_from_path(path, limit_per_scene=None):
         hr, lr, lr_masks = [], [], []
         scenes = get_scenes(path)
         for scene in scenes:
+            hr += load_imgs_with_prefix(scene, 'HR', limit_per_scene)
             lr += load_imgs_with_prefix(scene, 'LR', limit_per_scene)
             lr_masks += load_imgs_with_prefix(scene, 'QM', limit_per_scene)
-            hr += load_imgs_with_prefix(scene, 'HR', limit_per_scene)
         return (hr, lr, lr_masks)
 
 
