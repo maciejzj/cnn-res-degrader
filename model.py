@@ -15,8 +15,21 @@ from data_loader import rm_border_from_imgs
 keras.backend.set_floatx('float64')
 
 
-def make_model():
+def make_data(np_dataset_path):
+    train, test = np.load(np_dataset_path, allow_pickle=True)
+    train_hr, train_lr, _ = train
+    test_hr, test_lr, _ = test
 
+    x_train = np.array(train_hr).reshape(-1, 378, 378, 1)
+    y_train = np.array(train_lr).reshape(-1, 126, 126, 1)
+
+    x_test = np.array(test_hr).reshape(-1, 378, 378, 1)
+    y_test = np.array(test_lr).reshape(-1, 126, 126, 1)
+    
+    return x_train, y_train, x_test, y_test
+
+
+def make_model():
     model = models.Sequential()
 
     model.add(layers.InputLayer(input_shape=(378, 378, 1)))
@@ -28,7 +41,8 @@ def make_model():
                             padding='same', activation='relu'))
     model.add(layers.MaxPooling2D((3, 3)))
 
-    model.add(layers.Conv2DTranspose(64, kernel_size=3, padding='same', activation='relu',
+    model.add(layers.Conv2DTranspose(64, kernel_size=3, padding='same',
+                                     activation='relu',
                                      strides=2))
 
     model.add(layers.Conv2D(1, kernel_size=3,
@@ -36,42 +50,52 @@ def make_model():
 
     return model
 
+def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
+    callbacks = []
 
-train, test = np.load("dat-red-one-per-scene.npy", allow_pickle=True)
-train_hr, train_lr, _ = train
+    train_tim = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
 
-x = np.array(train_hr).reshape(-1, 378, 378, 1)
-y = np.array(train_lr).reshape(-1, 126, 126, 1)
+    if tensorboard == True:
+        callbacks.append(TensorBoard(log_dir='log/fit-' + train_tim))
+    if earlystopping == True:
+        callbacks.append(EarlyStopping(monitor='val_loss', mode='min',
+                           min_delta=0.001, patience=5, verbose=1))
+    if modelcheckpoint == True:
+        callbacks.append(ModelCheckpoint('log/model-' + train_tim + '.h5',
+                                         monitor='val_loss', mode='min',
+                                         save_best_only=True, verbose=1))
+    return callbacks
 
-model = make_model()
-model.compile(loss=losses.MeanSquaredError(),
-              optimizer=optimizers.Adam(),
-              metrics=['mae']
-              )
 
-train_tim = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
-tb = TensorBoard(log_dir='log/fit-' + train_tim)
-es = EarlyStopping(monitor='val_loss', mode='min',
-                   min_delta=0.0025, patience=5, verbose=1)
-mc = ModelCheckpoint('log/model-' + train_tim + '.h5', monitor='val_loss',
-                     mode='min', save_best_only=True, verbose=1)
+if __name__ == '__main__':
+    x_train, y_train, x_test, y_test = make_data('dat-red-one-per-scene.npy')
+    model = make_model()
+    callbacks = make_callbacks(earlystopping=False)
 
-model.summary()
-model.fit(x, y,
-          validation_split=0.2,
-          epochs=10,
-          callbacks=[tb, es, mc]
-          )
+    model.compile(loss=losses.MeanSquaredError(),
+                  optimizer=optimizers.Adam(),
+                  metrics=['mae'])
 
-p = model.predict(x[0].reshape(1, 378, 378, 1))
+    model.summary()
 
-plt.figure()
-plt.imshow(p.reshape(126, 126), cmap="gray")
-plt.colorbar()
-plt.figure()
-plt.imshow(x[0].reshape(378, 378), cmap="gray")
-plt.colorbar()
-plt.figure()
-plt.imshow(y[0].reshape(126, 126), cmap="gray", norm=None)
-plt.colorbar()
-plt.show()
+    model.fit(x_train, y_train,
+              validation_split=0.2,
+              epochs=18,
+              callbacks=callbacks)
+
+    print(model.evaluate(x_test, y_test))
+
+    # Demo
+    p = model.predict(x_test[[1]].reshape(1, 378, 378, 1))
+    plt.imshow(p.reshape(126, 126), cmap="gray")
+    plt.title("Prediction")
+
+    plt.figure()
+    plt.imshow(x_test[[1]].reshape(378, 378), cmap="gray")
+    plt.title("Input")
+
+    plt.figure()
+    plt.imshow(y_test[[1]].reshape(126, 126), cmap="gray", norm=None)
+    plt.title("Target")
+
+    plt.show()
