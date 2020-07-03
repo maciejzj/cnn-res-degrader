@@ -1,7 +1,7 @@
 import glob
 import os
 import numpy as np
-from skimage import exposure, io, util, img_as_float64
+from skimage import exposure, io, util, img_as_float64, transform
 
 
 def load_imageset(dataset_dir='./dataset-v11', dataset_name='NIR', limit_per_scene=None):
@@ -74,6 +74,21 @@ def rm_border_from_imgs(imgs, border_width=3):
         img = util.crop(img, crop_borders)
         ret.append(img)
     return ret
+
+
+def equalize_hist_in_npy_dataset(dataset):
+    for i, _ in enumerate(dataset):
+        for j in range(0, 2):
+            for k, _ in enumerate(dataset[i][j]):
+                dataset[i][j][k] = exposure.equalize_hist(dataset[i][j][k])
+    return dataset
+
+
+def make_y_downscaled(dataset):
+    for i, _ in enumerate(dataset):
+        for j, _ in enumerate(dataset[i][1]):
+            dataset[i][1][j] = transform.resize(dataset[i][0][j], (126, 126))
+    return dataset
 
 
 if __name__ == "__main__":
