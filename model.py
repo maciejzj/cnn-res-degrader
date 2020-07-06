@@ -25,7 +25,7 @@ def make_data(np_dataset_path):
 
     x_test = np.array(test_hr).reshape(-1, 378, 378, 1)
     y_test = np.array(test_lr).reshape(-1, 126, 126, 1)
-    
+
     return x_train, y_train, x_test, y_test
 
 
@@ -35,20 +35,12 @@ def make_model():
     model.add(layers.InputLayer(input_shape=(378, 378, 1)))
     model.add(layers.Conv2D(64, kernel_size=3,
                             padding='same', activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-
-    model.add(layers.Conv2D(64, kernel_size=3,
+    model.add(layers.Conv2D(64, kernel_size=5, strides=3,
                             padding='same', activation='relu'))
-    model.add(layers.MaxPooling2D((3, 3)))
-
-    model.add(layers.Conv2DTranspose(64, kernel_size=3, padding='same',
-                                     activation='relu',
-                                     strides=2))
-
     model.add(layers.Conv2D(1, kernel_size=3,
                             padding='same', activation='sigmoid'))
-
     return model
+
 
 def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
     callbacks = []
@@ -59,7 +51,7 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
         callbacks.append(TensorBoard(log_dir='log/fit-' + train_tim))
     if earlystopping == True:
         callbacks.append(EarlyStopping(monitor='val_loss', mode='min',
-                           min_delta=0.001, patience=5, verbose=1))
+                                       min_delta=0.001, patience=5, verbose=1))
     if modelcheckpoint == True:
         callbacks.append(ModelCheckpoint('log/model-' + train_tim + '.h5',
                                          monitor='val_loss', mode='min',
@@ -68,7 +60,8 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
 
 
 if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = make_data('dat-red-one-per-scene.npy')
+    x_train, y_train, x_test, y_test = make_data(
+        'dat-red-one-per-scene-eqhist.npy')
     model = make_model()
     callbacks = make_callbacks(earlystopping=False)
 
@@ -80,7 +73,7 @@ if __name__ == '__main__':
 
     model.fit(x_train, y_train,
               validation_split=0.2,
-              epochs=18,
+              epochs=32,
               callbacks=callbacks)
 
     print(model.evaluate(x_test, y_test))
