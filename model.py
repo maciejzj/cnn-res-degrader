@@ -60,8 +60,8 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
                                          save_best_only=True, verbose=1))
     return callbacks
 
-def train(npy_data_path):
-    x_train, y_train, x_test, y_test = make_data(npy_data_path)
+
+def train(x_train, y_train, x_test, y_test):
     model = make_model()
     callbacks = make_callbacks(earlystopping=False)
 
@@ -77,8 +77,10 @@ def train(npy_data_path):
               callbacks=callbacks)
     return model
 
+
 if __name__ == '__main__':
-    model = train(sys.argv[1])
+    x_train, y_train, x_test, y_test = make_data(sys.argv[1])
+    model = train(x_train, y_train, x_test, y_test)
 
     print(model.evaluate(x_test, y_test))
 
