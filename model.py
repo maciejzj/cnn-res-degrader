@@ -12,6 +12,7 @@ from skimage import io, util
 
 from data_loader import rm_border_from_imgs
 
+
 keras.backend.set_floatx('float64')
 
 
@@ -61,7 +62,7 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
 
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test = make_data(
-        'dat-red-one-per-scene-eqhist.npy')
+        'data/dat-nir-one-per-scene.npy')
     model = make_model()
     callbacks = make_callbacks(earlystopping=False)
 
@@ -73,13 +74,13 @@ if __name__ == '__main__':
 
     model.fit(x_train, y_train,
               validation_split=0.2,
-              epochs=32,
+              epochs=1,
               callbacks=callbacks)
 
     print(model.evaluate(x_test, y_test))
 
     # Demo
-    p = model.predict(x_test[[1]].reshape(1, 378, 378, 1))
+    p = model.predict(x_test[[1]])
     plt.imshow(p.reshape(126, 126), cmap="gray")
     plt.title("Prediction")
 

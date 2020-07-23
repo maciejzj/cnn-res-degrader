@@ -2,13 +2,14 @@ import glob
 import os
 import numpy as np
 from skimage import exposure, io, util, img_as_float64, transform
+from PIL import Image
+import copy
 
 
 def load_imageset(dataset_dir='./dataset-v11',
                   dataset_name='NIR', limit_per_scene=None):
     if dataset_name not in ('NIR', 'RED'):
-        raise RuntimeError(
-            'Unknown dataset name, will abort')
+        raise RuntimeError('Unknown dataset name')
     else:
         train = load_imageset_from_path(
             os.path.join(
@@ -23,8 +24,7 @@ def load_imageset(dataset_dir='./dataset-v11',
 
 def load_imageset_from_path(path, limit_per_scene=None):
     if not os.path.isdir(path):
-        raise RuntimeError(
-            'Dataset path does not exist')
+        raise RuntimeError('Dataset path does not exist')
     else:
         hr, lr, lr_masks = [], [], []
         scenes = get_scenes(path)
@@ -51,6 +51,7 @@ def load_imgs_with_prefix(path, prefix, limit=None):
     imgs = []
     glob_path = os.path.join(path, prefix)
     img_names = sorted(glob.glob(glob_path + '*'))
+
     if limit is not None:
         img_names = img_names[:limit]
 
@@ -74,7 +75,7 @@ def store_imgset_as_npy_files(output_file_name, dataset_dir='./dataset-v11',
     dataset = load_imageset(
         dataset_dir=dataset_dir, dataset_name=dataset_name,
         limit_per_scene=limit_per_scene)
-    np.save(output_file_name + ".npy", dataset)
+    np.save(output_file_name + '.npy', dataset)
 
 
 def rm_border_from_imgs(imgs, border_width=3):
@@ -96,20 +97,54 @@ def equalize_hist_in_npy_dataset(dataset):
     return dataset
 
 
-def make_y_downscaled(dataset):
+def transform_y(dataset, tf_func):
     for i, _ in enumerate(dataset):
         for j, _ in enumerate(dataset[i][1]):
-            dataset[i][1][j] = transform.resize(
-                dataset[i][0][j], (126, 126))
+            dataset[i][1][j] = tf_func(dataset[i][0][j])
     return dataset
+
+
+def transform_xy(dataset, tf_func):
+    for i, _ in enumerate(dataset):
+        for j in range(0, 2):
+            for k, _ in enumerate(dataset[i][j]):
+                dataset[i][j][k] = tf_func(dataset[i][j][k])
+    return dataset
+
+
+def make_hist_eq_xy_dataset(name_prefix, source_dataset):
+    def tf(img): return exposure.equalize_hist(img)
+    cp = copy.deepcopy(source_dataset)
+    modified = transform_xy(cp, tf)
+    np.save(name_prefix + '-eqhist' + '.npy', modified)
+
+
+def make_resized_y_dataset(name_prefix, source_dataset):
+    interpolation_modes = {
+        'nearest': Image.NEAREST,
+        'bilinear': Image.BILINEAR,
+        'bicubic': Image.BICUBIC,
+        'lanczos': Image.LANCZOS
+    }
+    transformations = []
+    for name, mode in interpolation_modes.items():
+        def tf(img): return np.array(Image.fromarray(img).resize((126, 126), mode))
+        cp = copy.deepcopy(source_dataset)
+        modified = transform_y(cp, tf)
+        np.save(os.path.splitext(name_prefix)[0] + '-' + name + '.npy', modified)
+
+
+def augment_dataset(dataset_name):
+    dataset = np.load(dataset_name, allow_pickle=True)
+    make_resized_y_dataset(dataset_name, dataset)
+    make_hist_eq_xy_dataset(dataset_name, dataset)
 
 
 if __name__ == "__main__":
     store_imgset_as_npy_files(
-        "dat-nir", dataset_name="NIR")
+        'data/dat-nir-one-per-scene', dataset_name='NIR', limit_per_scene=1)
     store_imgset_as_npy_files(
-        "dat-red", dataset_name="RED")
-    store_imgset_as_npy_files("dar-nir-one-per-scene", dataset_name="NIR",
-                              limit_per_scene=1)
-    store_imgset_as_npy_files("dat-red-one-per-scene", dataset_name="RED",
-                              limit_per_scene=1)
+        'data/dat-red-one-per-scene', dataset_name='RED', limit_per_scene=1)
+
+    augment_dataset('data/dat-nir-one-per-scene.npy')
+    augment_dataset('data/dat-red-one-per-scene.npy')
