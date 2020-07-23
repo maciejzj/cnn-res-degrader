@@ -9,6 +9,7 @@ from keras import backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from matplotlib import pyplot as plt
 from skimage import io, util
+import sys
 
 from data_loader import rm_border_from_imgs
 
@@ -59,10 +60,8 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
                                          save_best_only=True, verbose=1))
     return callbacks
 
-
-if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = make_data(
-        'data/dat-nir-one-per-scene.npy')
+def train(npy_data_path):
+    x_train, y_train, x_test, y_test = make_data(npy_data_path)
     model = make_model()
     callbacks = make_callbacks(earlystopping=False)
 
@@ -76,6 +75,10 @@ if __name__ == '__main__':
               validation_split=0.2,
               epochs=1,
               callbacks=callbacks)
+    return model
+
+if __name__ == '__main__':
+    model = train(sys.argv[1])
 
     print(model.evaluate(x_test, y_test))
 
