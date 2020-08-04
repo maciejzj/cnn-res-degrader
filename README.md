@@ -1,3 +1,5 @@
+![Build](https://github.com/maciejzj/cnn-res-degrader/workflows/Build/badge.svg)
+
 # CNN resolution degrader
 
 Simple neural network for downscaling aerial images.
