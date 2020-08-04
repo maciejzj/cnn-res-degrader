@@ -107,5 +107,6 @@ def main():
                  ('log/model-20-07-22-10:54:06-nir-real.h5',
                   'log/model-20-07-21-19:19:49-nir-eqhist.h5'))
 
+
 if __name__ == '__main__':
     main()

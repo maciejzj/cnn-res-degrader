@@ -96,7 +96,6 @@ def rm_border_from_imgs(imgs, border_width=3):
     return ret
 
 
-
 def transform_y(dataset, tf_func):
     for traintest_subset in enumerate(dataset):
         y_subset = traintest_subset[1]
@@ -130,10 +129,13 @@ def make_resized_y_dataset(name_prefix, source_dataset):
     }
 
     for name, mode in interpolation_modes.items():
-        tf = lambda img: np.array(Image.fromarray(img).resize((126, 126),
-                                                              mode))
         cp = copy.deepcopy(source_dataset)
-        modified = transform_y(cp, tf)
+        size = (126, 126)
+
+        modified = transform_y(
+            cp,
+            lambda img: np.array(Image.fromarray(img).resize(size, mode)))
+
         np.save(os.path.splitext(name_prefix)[0] + '-' + name + '.npy',
                 modified)
 
