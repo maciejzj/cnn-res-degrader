@@ -1,41 +1,49 @@
+#!/usr/bin/env python3
+
+'''
+Imageset loader, when exected as script creates and saves all necesarry
+datasets in npy format
+'''
+
 import glob
 import os
-import numpy as np
-from skimage import exposure, io, util, img_as_float64, transform
-from PIL import Image
 import copy
+
+import numpy as np
+from skimage import exposure, io, util, img_as_float64
+from PIL import Image
 
 
 def load_imageset(dataset_dir='./dataset-v11',
                   dataset_name='NIR', limit_per_scene=None):
     if dataset_name not in ('NIR', 'RED'):
         raise RuntimeError('Unknown dataset name')
-    else:
-        train = load_imageset_from_path(
-            os.path.join(
-                dataset_dir, 'train', dataset_name),
-            limit_per_scene=limit_per_scene)
-        test = load_imageset_from_path(
-            os.path.join(
-                dataset_dir, 'test', dataset_name),
-            limit_per_scene=limit_per_scene)
-        return (train, test)
+
+    train = load_imageset_from_path(
+        os.path.join(
+            dataset_dir, 'train', dataset_name),
+        limit_per_scene=limit_per_scene)
+    test = load_imageset_from_path(
+        os.path.join(
+            dataset_dir, 'test', dataset_name),
+        limit_per_scene=limit_per_scene)
+    return (train, test)
 
 
 def load_imageset_from_path(path, limit_per_scene=None):
     if not os.path.isdir(path):
         raise RuntimeError('Dataset path does not exist')
-    else:
-        hr, lr, lr_masks = [], [], []
-        scenes = get_scenes(path)
-        for scene in scenes:
-            hr += load_imgs_with_prefix(
-                scene, 'HR', limit_per_scene)
-            lr += load_imgs_with_prefix(
-                scene, 'LR', limit_per_scene)
-            lr_masks += load_imgs_with_prefix(
-                scene, 'QM', limit_per_scene)
-        return (hr, lr, lr_masks)
+
+    hr, lr, lr_masks = [], [], []
+    scenes = get_scenes(path)
+    for scene in scenes:
+        hr += load_imgs_with_prefix(
+            scene, 'HR', limit_per_scene)
+        lr += load_imgs_with_prefix(
+            scene, 'LR', limit_per_scene)
+        lr_masks += load_imgs_with_prefix(
+            scene, 'QM', limit_per_scene)
+    return (hr, lr, lr_masks)
 
 
 def get_scenes(path):
@@ -65,8 +73,8 @@ def load_imgs_with_prefix(path, prefix, limit=None):
     return imgs
 
 
-def store_imgset_as_npy_files(output_file_name, dataset_dir='./dataset-v11',
-                              dataset_name='NIR', limit_per_scene=None):
+def store_imgset_as_npy_files(output_file_name, dataset_name,
+                              dataset_dir='dataset-v11', limit_per_scene=None):
     '''
     Saves as:
         [ [train_hr, train_lr, train_lr_masks],
@@ -88,34 +96,28 @@ def rm_border_from_imgs(imgs, border_width=3):
     return ret
 
 
-def equalize_hist_in_npy_dataset(dataset):
-    for i, _ in enumerate(dataset):
-        for j in range(0, 2):
-            for k, _ in enumerate(dataset[i][j]):
-                dataset[i][j][k] = exposure.equalize_hist(
-                    dataset[i][j][k])
-    return dataset
-
 
 def transform_y(dataset, tf_func):
-    for i, _ in enumerate(dataset):
-        for j, _ in enumerate(dataset[i][1]):
-            dataset[i][1][j] = tf_func(dataset[i][0][j])
+    for traintest_subset in enumerate(dataset):
+        y_subset = traintest_subset[1]
+        for i, img in enumerate(y_subset):
+            y_subset[i] = tf_func(img)
     return dataset
 
 
 def transform_xy(dataset, tf_func):
-    for i, _ in enumerate(dataset):
-        for j in range(0, 2):
-            for k, _ in enumerate(dataset[i][j]):
-                dataset[i][j][k] = tf_func(dataset[i][j][k])
+    for traintest_subset in enumerate(dataset):
+        xy_subset_range = range(0, 2)
+        for i in xy_subset_range:
+            imgset = traintest_subset[i]
+            for j, img in enumerate(imgset):
+                imgset[j] = tf_func(img)
     return dataset
 
 
 def make_hist_eq_xy_dataset(name_prefix, source_dataset):
-    def tf(img): return exposure.equalize_hist(img)
     cp = copy.deepcopy(source_dataset)
-    modified = transform_xy(cp, tf)
+    modified = transform_xy(cp, exposure.equalize_hist)
     np.save(name_prefix + '-eqhist' + '.npy', modified)
 
 
@@ -126,12 +128,14 @@ def make_resized_y_dataset(name_prefix, source_dataset):
         'bicubic': Image.BICUBIC,
         'lanczos': Image.LANCZOS
     }
-    transformations = []
+
     for name, mode in interpolation_modes.items():
-        def tf(img): return np.array(Image.fromarray(img).resize((126, 126), mode))
+        tf = lambda img: np.array(Image.fromarray(img).resize((126, 126),
+                                                              mode))
         cp = copy.deepcopy(source_dataset)
         modified = transform_y(cp, tf)
-        np.save(os.path.splitext(name_prefix)[0] + '-' + name + '.npy', modified)
+        np.save(os.path.splitext(name_prefix)[0] + '-' + name + '.npy',
+                modified)
 
 
 def augment_dataset(dataset_name):
@@ -140,11 +144,15 @@ def augment_dataset(dataset_name):
     make_hist_eq_xy_dataset(dataset_name, dataset)
 
 
-if __name__ == "__main__":
+def main():
     store_imgset_as_npy_files(
-        'data/dat-nir-one-per-scene', dataset_name='NIR', limit_per_scene=1)
+        'data/dat-nir-one-per-scene', 'NIR', limit_per_scene=1)
     store_imgset_as_npy_files(
-        'data/dat-red-one-per-scene', dataset_name='RED', limit_per_scene=1)
+        'data/dat-red-one-per-scene', 'RED', limit_per_scene=1)
 
     augment_dataset('data/dat-nir-one-per-scene.npy')
     augment_dataset('data/dat-red-one-per-scene.npy')
+
+
+if __name__ == "__main__":
+    main()

@@ -1,26 +1,26 @@
+#!/usr/bin/env python3
+
+'''
+Model and training for image shrinking neural network, when executed as script
+trains using data loaded from path to npy dataset passed as arg
+'''
+
+import argparse
 from datetime import datetime
+
 import numpy as np
-import keras
-from keras import models
-from keras import layers
-from keras import losses
-from keras import optimizers
+from keras import layers, losses, models, optimizers
 from keras import backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from matplotlib import pyplot as plt
-from skimage import io, util
-import sys
 
-from data_loader import rm_border_from_imgs
-
-
-keras.backend.set_floatx('float64')
+K.set_floatx('float64')
 
 
 def make_data(np_dataset_path):
-    train, test = np.load(np_dataset_path, allow_pickle=True)
-    train_hr, train_lr, _ = train
-    test_hr, test_lr, _ = test
+    (train_dat, test_dat) = np.load(np_dataset_path, allow_pickle=True)
+    (train_hr, train_lr, _) = train_dat
+    (test_hr, test_lr, _) = test_dat
 
     x_train = np.array(train_hr).reshape(-1, 378, 378, 1)
     y_train = np.array(train_lr).reshape(-1, 126, 126, 1)
@@ -28,7 +28,7 @@ def make_data(np_dataset_path):
     x_test = np.array(test_hr).reshape(-1, 378, 378, 1)
     y_test = np.array(test_lr).reshape(-1, 126, 126, 1)
 
-    return x_train, y_train, x_test, y_test
+    return (x_train, y_train, x_test, y_test)
 
 
 def make_model():
@@ -49,19 +49,20 @@ def make_callbacks(tensorboard=True, earlystopping=True, modelcheckpoint=True):
 
     train_tim = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
 
-    if tensorboard == True:
+    if tensorboard:
         callbacks.append(TensorBoard(log_dir='log/fit-' + train_tim))
-    if earlystopping == True:
+
+    if earlystopping:
         callbacks.append(EarlyStopping(monitor='val_loss', mode='min',
                                        min_delta=0.001, patience=5, verbose=1))
-    if modelcheckpoint == True:
+    if modelcheckpoint:
         callbacks.append(ModelCheckpoint('log/model-' + train_tim + '.h5',
                                          monitor='val_loss', mode='min',
                                          save_best_only=True, verbose=1))
     return callbacks
 
 
-def train(x_train, y_train, x_test, y_test):
+def train(x_train, y_train):
     model = make_model()
     callbacks = make_callbacks(earlystopping=False)
 
@@ -78,13 +79,12 @@ def train(x_train, y_train, x_test, y_test):
     return model
 
 
-if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = make_data(sys.argv[1])
-    model = train(x_train, y_train, x_test, y_test)
+def main(dataset_path):
+    x_train, y_train, x_test, y_test = make_data(dataset_path)
+    model = train(x_train, y_train)
 
     print(model.evaluate(x_test, y_test))
 
-    # Demo
     p = model.predict(x_test[[1]])
     plt.imshow(p.reshape(126, 126), cmap="gray")
     plt.title("Prediction")
@@ -98,3 +98,15 @@ if __name__ == '__main__':
     plt.title("Target")
 
     plt.show()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Train default image shrinking neural network model')
+
+    parser.add_argument(
+        'dataset_path',
+        help='path to npy dataset which will be used for training')
+
+    args = parser.parse_args()
+    main(args.dataset_path)

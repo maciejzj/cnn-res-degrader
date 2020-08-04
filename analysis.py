@@ -1,12 +1,17 @@
-from skimage import metrics
+#!/usr/bin/env python3
+
+'''
+Helper functions for analysis of images shrinking neural network
+'''
+
 import os
-from data_loader import *
-from model import *
-import numpy as np
-from skimage import data, img_as_float
 from statistics import mean
-import matplotlib
+
 import matplotlib.pyplot as plt
+import numpy as np
+from skimage import img_as_float, metrics
+
+from model import make_data, make_model
 
 
 def compare(x_set, y_set, compare_func):
@@ -57,8 +62,8 @@ def plot_all_vs_all_heatmap(data, labels, title):
     im = ax.imshow(data)
     ax.figure.colorbar(im, ax=ax)
 
-    for i, lab1 in enumerate(labels):
-        for j, lab2 in enumerate(labels):
+    for i in range(len(labels)):
+        for j in range(len(labels)):
             ax.text(j, i, round(data[i][j], 3),
                     ha="center", va="center", color="w")
 
@@ -77,7 +82,7 @@ def demo_heatmap(dataset_path, weight_files_list):
     model = make_model()
     preds = predict_with_pretrained_weights(x, model, weight_files_list)
     sets_labels += prediction_labels
-    sets += preds 
+    sets += preds
 
     modified_labels = ['bicubic', 'bilinear', 'lanczos', 'nearest']
     base_path = os.path.splitext(dataset_path)[0]
@@ -85,16 +90,22 @@ def demo_heatmap(dataset_path, weight_files_list):
     sets_labels += modified_labels
     sets += modified
 
-    heatmap = make_heatmap_data(sets,
+    heatmap = make_heatmap_data(
+        sets,
         lambda x, y: metrics.peak_signal_noise_ratio(x, y, data_range=1.))
     plot_all_vs_all_heatmap(heatmap, sets_labels, 'PSNR (larger is better)')
 
-    heatmap = make_heatmap_data(sets,
-        lambda x, y: metrics.mean_squared_error(x, y))
+    heatmap = make_heatmap_data(
+        sets,
+        metrics.mean_squared_error)
+
     plot_all_vs_all_heatmap(heatmap, sets_labels, 'MSE (smaller is better)')
 
 
-if __name__ == '__main__':
+def main():
     demo_heatmap('data/dat-nir-one-per-scene.npy',
                  ('log/model-20-07-22-10:54:06-nir-real.h5',
                   'log/model-20-07-21-19:19:49-nir-eqhist.h5'))
+
+if __name__ == '__main__':
+    main()
