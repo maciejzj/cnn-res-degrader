@@ -130,4 +130,5 @@ if __name__ == '__main__':
     model = SimpleConv(params['train']['use_lr_masks'])
 
     training = Training(model, params['train']['lr'], params['train']['loss'])
+    training.make_callbacks(params['train']['callbacks'])
     training.train(train_ds, val_ds, params['train']['epochs'])
