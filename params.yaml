@@ -1,6 +1,6 @@
 # WARNING: Some options are mutually exclusive.
 # List of incompatible options:
-# 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: ssim'.
+# 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: SSIM'.
 
 model: simple_conv
 
