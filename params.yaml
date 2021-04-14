@@ -1,0 +1,37 @@
+# WARNING: Some options are mutually exclusive.
+# List of incompatible options:
+# 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: ssim'.
+
+model: simple_conv
+
+load:
+  # Supported datasets: 'NIR', 'RED'
+  dataset: NIR
+  # Must be divisible by three.
+  input_shape: 
+    - 378
+    - 378
+  limit_per_scene: 3
+  batch_size: 32
+  validation_split: 0.8
+  preprocess:
+    equalize_hist: true
+    artificial_lr: false
+    # Supported interpolation modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
+    interpolation_mode: BICUBIC
+      
+train:
+  lr: 0.0001
+  epochs: 100
+  # Supported losses: 'MAE', 'MSE', 'PSNR', 'SSIM'
+  loss: MAE
+  use_lr_masks: true
+
+  callbacks:
+    tensorboard: true
+    modelcheckpoint: true
+    earlystopping: true
+    stopping_delta: 0.001
+    stopping_patience: 5
+
+test:
