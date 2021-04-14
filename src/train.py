@@ -1,7 +1,7 @@
 import yaml
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import tensorflow as tf
 from tensorflow import keras
@@ -46,8 +46,8 @@ class Training:
             self._callbacks.append(EarlyStopping(
                 monitor='val_loss',
                 mode='min',
-                min_delta=0.001,
-                patience=5,
+                min_delta=callbacks_params['stopping_delta'],
+                patience=callbacks_params['stopping_patience'],
                 verbose=1))
 
         if callbacks_params['modelcheckpoint']:
@@ -66,8 +66,7 @@ class Training:
                             optimizer=keras.optimizers.Adam(),
                             metrics=[
                                 keras.metrics.MeanAbsoluteError(),
-                                keras.metrics.MeanSquaredError()]
-                            )
+                                keras.metrics.MeanSquaredError()])
         self._model.fit(train_ds,
                         validation_data=val_ds,
                         epochs=epochs,
@@ -88,6 +87,30 @@ def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
     return ProbaImagePreprocessor(*transformations)
 
 
+def make_training_data(load_params: Dict[str, Any]) -> Tuple[
+        ProbaDataGenerator, ProbaDataGenerator]:
+    dir_scanner = ProbaDirectoryScanner(
+        Path('data/proba-v11_shifted'),
+        dataset=load_params['dataset'],
+        subset=Subset.TRAIN,
+        splits={'train': load_params['validation_split'],
+                'val': 1.0 - load_params['validation_split']},
+        limit_per_scene=load_params['limit_per_scene'])
+    preprocessor = make_preprocessor(load_params['preprocess'])
+
+    train_ds = ProbaDataGenerator(
+        dir_scanner.get_split('train'),
+        hr_shape=load_params['input_shape'],
+        preprocessor=preprocessor)
+
+    val_ds = ProbaDataGenerator(
+        dir_scanner.get_split('val'),
+        hr_shape=load_params['input_shape'],
+        preprocessor=preprocessor)
+
+    return train_ds, val_ds
+
+
 def make_params(params_path: Path) -> Dict[str, Any]:
     with open(params_path) as params_file:
         params = yaml.load(params_file, Loader=yaml.FullLoader)
@@ -102,49 +125,8 @@ def make_params(params_path: Path) -> Dict[str, Any]:
 
 if __name__ == '__main__':
     params = make_params(Path('params.yaml'))
-
-    dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v11_shifted'),
-        dataset=params['load']['dataset'],
-        subset=Subset.TRAIN,
-        splits={'train': params['load']['validation_split'],
-                'val': 1.0 - params['load']['validation_split']},
-        limit_per_scene=params['load']['limit_per_scene'])
-    preprocessor = make_preprocessor(params['load']['preprocess'])
-
-    train_ds = ProbaDataGenerator(
-        dir_scanner.get_split('train'),
-        preprocessor=preprocessor)
-
-    val_ds = ProbaDataGenerator(
-        dir_scanner.get_split('val'),
-        preprocessor=preprocessor)
-
+    train_ds, val_ds = make_training_data(params['load'])
     model = SimpleConv(params['train']['use_lr_masks'])
 
     training = Training(model, params['train']['loss'])
     training.train(train_ds, val_ds, params['train']['epochs'])
-
-# if __name__ == '__main__':
-#     config = yaml.load('params.yaml')
-
-#     dir_scanner = ProbaDirectoryScanner(
-#         Path('data/proba-v11_shifted'),
-#         dataset=Dataset.NIR,
-#         subset=Subset.TRAIN,
-#         splits={'train': 0.7, 'val': 0.3},
-#         limit_per_scene=3)
-#     preprocessor = ProbaImagePreprocessor(
-#         ProbaHistEqualizer())
-
-#     train_ds = ProbaDataGenerator(
-#         dir_scanner.get_split('train'),
-#         preprocessor=preprocessor)
-
-#     val_ds = ProbaDataGenerator(
-#         dir_scanner.get_split('val'),
-#         preprocessor=preprocessor)
-
-#     model = SimpleConv(use_lr_masks=False)
-#     model.compile(loss=make_ssim_metric(), run_eagerly=True)
-#     model.fit(train_ds, validation_data=val_ds)
