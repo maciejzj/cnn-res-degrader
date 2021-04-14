@@ -19,20 +19,20 @@ from data_loading import (
     ProbaImagePreprocessor,
     ProbaHistEqualizer,
     ProbaResizer)
-from metrics import make_psnr_metric, make_ssim_metric
+from metrics import make_ssim_metric
 from models import SimpleConv
 
 
 TRAIN_LOSSES = {
     'MAE': keras.losses.MeanAbsoluteError(),
     'MSE': keras.losses.MeanSquaredError(),
-    'PSNR': make_psnr_metric(),
     'SSIM': make_ssim_metric()}
 
 
 class Training:
-    def __init__(self, model: keras.Model, loss: Callable):
+    def __init__(self, model: keras.Model, lr: float, loss: Callable):
         self._model = model
+        self._lr = lr
         self._loss = loss
         self._train_tim = datetime.now().strftime("%y-%m-%d-%H:%M:%S")
         self._callbacks: List[tf.keras.callbacks.Callback] = []
@@ -63,7 +63,8 @@ class Training:
               val_ds: keras.utils.Sequence,
               epochs: int):
         self._model.compile(loss=self._loss,
-                            optimizer=keras.optimizers.Adam(),
+                            optimizer=keras.optimizers.Adam(
+                                learning_rate=self._lr),
                             metrics=[
                                 keras.metrics.MeanAbsoluteError(),
                                 keras.metrics.MeanSquaredError()])
@@ -128,5 +129,5 @@ if __name__ == '__main__':
     train_ds, val_ds = make_training_data(params['load'])
     model = SimpleConv(params['train']['use_lr_masks'])
 
-    training = Training(model, params['train']['loss'])
+    training = Training(model, params['train']['lr'], params['train']['loss'])
     training.train(train_ds, val_ds, params['train']['epochs'])
