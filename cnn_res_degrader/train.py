@@ -10,7 +10,7 @@ from tensorflow.keras.callbacks import (
     ModelCheckpoint,
     TensorBoard)
 
-from data_loading import (
+from cnn_res_degrader.data_loading import (
     Dataset,
     Subset,
     InterpolationMode,
@@ -19,8 +19,8 @@ from data_loading import (
     ProbaImagePreprocessor,
     ProbaHistEqualizer,
     ProbaResizer)
-from metrics import make_ssim_metric
-from models import SimpleConv
+from cnn_res_degrader.metrics import make_ssim_metric
+from cnn_res_degrader.models import SimpleConv
 
 
 TRAIN_LOSSES = {
@@ -124,11 +124,17 @@ def make_params(params_path: Path) -> Dict[str, Any]:
     return params
 
 
-if __name__ == '__main__':
+def main():
     params = make_params(Path('params.yaml'))
     train_ds, val_ds = make_training_data(params['load'])
-    model = SimpleConv(params['train']['use_lr_masks'])
+    model = SimpleConv(params['load']['input_shape'],
+                       params['train']['use_lr_masks'])
+    model.get_functional().summary()
 
     training = Training(model, params['train']['lr'], params['train']['loss'])
     training.make_callbacks(params['train']['callbacks'])
     training.train(train_ds, val_ds, params['train']['epochs'])
+
+
+if __name__ == '__main__':
+    main()

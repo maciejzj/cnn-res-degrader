@@ -1,12 +1,15 @@
+from typing import Tuple
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
 
 class SimpleConv(keras.Model):
-    def __init__(self, use_lr_masks: bool):
+    def __init__(self, input_shape: Tuple[int, int, int], use_lr_masks=False):
         super(SimpleConv, self).__init__()
         self._use_lr_masks = use_lr_masks
+        self._input_shape = input_shape
 
         self.conv1 = layers.Conv2D(
             64,
@@ -25,11 +28,19 @@ class SimpleConv(keras.Model):
             padding='same',
             activation='sigmoid')
 
+        # 'Dry running' the model builds it, enabling things like `.summary()`
+        # and `.load_weights()`
+        self(tf.zeros((1, 376, 376, 1)))
+
     def call(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         return x
+
+    def get_functional(self) -> keras.Model:
+        x = keras.Input(shape=self._input_shape)
+        return keras.Model(inputs=[x], outputs=self(x))
 
     @tf.function
     def train_step(self, data):

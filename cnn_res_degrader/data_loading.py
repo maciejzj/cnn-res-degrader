@@ -13,6 +13,7 @@ from tensorflow import keras
 
 Sample = Tuple[np.ndarray, np.ndarray, np.ndarray]
 SamplePaths = Tuple[Path, Path, Path]
+SampleTransformation = Callable[[Sample], Sample]
 
 
 class SampleEl(IntEnum):
@@ -116,7 +117,7 @@ class ProbaDirectoryScanner:
         return ret
 
 
-class ProbaHistEqualizer():
+class ProbaHistEqualizer:
     def __call__(self, sample: Sample) -> Sample:
         new_hr = exposure.equalize_hist(sample[SampleEl.HR])
         new_lr = exposure.equalize_hist(sample[SampleEl.LR])
@@ -130,23 +131,24 @@ class InterpolationMode(IntEnum):
     LANCZOS = Image.LANCZOS
 
 
-class ProbaResizer():
+class ProbaHrToLrResizer:
     def __init__(self, interpolation_mode: InterpolationMode,
-                 target_shape=(126, 126)):
+                 target_shape: Tuple[int, int, int]):
         self._interpolation_mode = interpolation_mode
         self._target_shape = target_shape
 
     def __call__(self, sample: Sample) -> Sample:
         hr = sample[SampleEl.HR]
-        resized = np.array(Image.fromarray(hr).resize(
-            self._target_shape,
+        resized = np.array(Image.fromarray(np.squeeze(hr, axis=2)).resize(
+            self._target_shape[:-1],
             self._interpolation_mode))
+        resized = np.expand_dims(resized, axis=2)
         return sample[SampleEl.HR], resized, sample[SampleEl.LR_MASK]
 
 
 class ProbaImagePreprocessor:
-    def __init__(self, *args: Callable[[Sample], Sample]):
-        self._transformations: Tuple[Callable[[Sample], Sample], ...] = args
+    def __init__(self, *args: SampleTransformation):
+        self._transformations: Tuple[SampleTransformation, ...] = args
 
     def __call__(self, sample: Sample) -> Sample:
         for transformation in self._transformations:
@@ -154,19 +156,26 @@ class ProbaImagePreprocessor:
         return sample
 
 
+def hr_shape_to_lr_shape(
+        hr_shape: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    if hr_shape[0] % 3 or hr_shape[1] % 3:
+        raise ValueError('HR dimensions not divisible by three.')
+    return hr_shape[0]//3, hr_shape[1]//3, hr_shape[2]
+
+
 class ProbaDataGenerator(keras.utils.Sequence):
     def __init__(self,
                  paths: List[SamplePaths],
-                 preprocessor: Callable[[Sample], Sample],
+                 preprocessor: ProbaImagePreprocessor,
+                 hr_shape=(378, 378, 1),
                  batch_size=32,
-                 hr_shape=(378, 378),
                  include_masks=True,
                  shuffle=True):
         self._paths = paths
         self._preprocessor = preprocessor
         self._batch_size = batch_size
         self._hr_shape = hr_shape
-        self._lr_shape = (int(hr_shape[0]/3), int(hr_shape[0]/3))
+        self._lr_shape = hr_shape_to_lr_shape(hr_shape)
         self._include_masks = include_masks
         self._shuffle = shuffle
 
@@ -181,6 +190,20 @@ class ProbaDataGenerator(keras.utils.Sequence):
             index * self._batch_size:(index + 1) * self._batch_size]
         return self._generate_batch(paths_in_batch)
 
+    def to_array(self) -> np.ndarray:
+        ret = []
+        # Keras internals force usage of range(len()) here
+        for batch_iter in range(len(self)):
+            ret.append(self[batch_iter])
+        return np.concatenate(ret)
+
+    def to_lr_array(self):
+        ret = []
+        # Keras internals force usage of range(len()) here
+        for batch_iter in range(len(self)):
+            ret.append(self[batch_iter][SampleEl.LR])
+        return np.concatenate(ret)
+
     def on_epoch_end(self):
         if self._shuffle is True:
             random.shuffle(self._paths)
@@ -194,12 +217,12 @@ class ProbaDataGenerator(keras.utils.Sequence):
         return (x, y, y_masks) if self._include_masks else (x, y)
 
     def _init_batch(self):
-        x = np.empty((self._batch_size, *self._hr_shape, 1))
-        y = np.empty((self._batch_size, *self._lr_shape, 1))
-        y_masks = np.empty((self._batch_size, *self._lr_shape, 1))
+        x = np.empty((self._batch_size, *self._hr_shape))
+        y = np.empty((self._batch_size, *self._lr_shape))
+        y_masks = np.empty((self._batch_size, *self._lr_shape))
         return x, y, y_masks
 
-    @staticmethod
+    @ staticmethod
     def _load_sample(sample_paths: SamplePaths):
         x = load_proba_img_as_array(sample_paths[SampleEl.HR])
         y = load_proba_img_as_array(sample_paths[SampleEl.LR])
