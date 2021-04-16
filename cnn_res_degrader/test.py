@@ -1,12 +1,13 @@
+import sys
 import yaml
 from functools import partial
 from pathlib import Path
 from statistics import mean
 from typing import Any, Callable, Dict, List
 
-from matplotlib import pyplot as plt
-from skimage import io, img_as_float, metrics
 import numpy as np
+from matplotlib import pyplot as plt
+from skimage import img_as_float, metrics
 
 from cnn_res_degrader.data_loading import (
     hr_shape_to_lr_shape,
@@ -14,10 +15,8 @@ from cnn_res_degrader.data_loading import (
     InterpolationMode,
     ProbaDataGenerator,
     ProbaDirectoryScanner,
-    ProbaHistEqualizer,
     ProbaHrToLrResizer,
     ProbaImagePreprocessor,
-    Sample,
     SampleEl,
     SampleTransformation,
     Subset)
@@ -43,7 +42,8 @@ def make_test_data(load_params: Dict[str, Any]) -> ProbaDataGenerator:
     return test_ds
 
 
-def make_artificial_datasets(load_params: Dict[str, Any]) -> List[SampleTransformation]:
+def make_artificial_datasets(
+        load_params: Dict[str, Any]) -> List[SampleTransformation]:
     dir_scanner = ProbaDirectoryScanner(
         Path('data/proba-v11_shifted'),
         dataset=load_params['dataset'],
@@ -146,7 +146,7 @@ def main():
     lr_sets = [test_ds.to_lr_array()]
 
     model = SimpleConv(params['load']['input_shape'])
-    model.load_weights('log/model-21-04-15-10:41:39.h5')
+    model.load_weights(sys.argv[1])
     lr_prediction_labels = ['pred_eqhist']
     lr_preds = model.predict(test_ds)
     lr_sets_labels += lr_prediction_labels

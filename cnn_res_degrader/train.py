@@ -1,3 +1,4 @@
+import sys
 import yaml
 from datetime import datetime
 from pathlib import Path
@@ -18,7 +19,7 @@ from cnn_res_degrader.data_loading import (
     ProbaDirectoryScanner,
     ProbaImagePreprocessor,
     ProbaHistEqualizer,
-    ProbaResizer)
+    ProbaHrToLrResizer)
 from cnn_res_degrader.metrics import make_ssim_metric
 from cnn_res_degrader.models import SimpleConv
 
@@ -40,7 +41,7 @@ class Training:
     def make_callbacks(self, callbacks_params: Dict[str, Any]):
         if callbacks_params['tensorboard']:
             self._callbacks.append(TensorBoard(
-                log_dir='log/fit-' + self._train_tim))
+                log_dir=f'log/fit-{self._model.name}-{self._train_tim}'))
 
         if callbacks_params['earlystopping']:
             self._callbacks.append(EarlyStopping(
@@ -52,7 +53,7 @@ class Training:
 
         if callbacks_params['modelcheckpoint']:
             self._callbacks.append(ModelCheckpoint(
-                'log/model-' + self._train_tim + '.h5',
+                f'log/model-{self._model.name}-{self._train_tim}.h5',
                 monitor='val_loss',
                 mode='min',
                 save_best_only=True,
@@ -82,7 +83,7 @@ def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
         transformations.append(ProbaHistEqualizer())
 
     if prep_params['artificial_lr']:
-        transformations.append(ProbaResizer(
+        transformations.append(ProbaHrToLrResizer(
             prep_params['interpolation_mode']))
 
     return ProbaImagePreprocessor(*transformations)
@@ -128,7 +129,8 @@ def main():
     params = make_params(Path('params.yaml'))
     train_ds, val_ds = make_training_data(params['load'])
     model = SimpleConv(params['load']['input_shape'],
-                       params['train']['use_lr_masks'])
+                       name=f'{params["model"]}-{sys.argv[1]}',
+                       use_lr_masks=params['train']['use_lr_masks'])
     model.get_functional().summary()
 
     training = Training(model, params['train']['lr'], params['train']['loss'])
