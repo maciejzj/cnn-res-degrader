@@ -53,7 +53,7 @@ class Training:
 
         if callbacks_params['modelcheckpoint']:
             self._callbacks.append(ModelCheckpoint(
-                f'log/model-{self._model.name}-{self._train_tim}.h5',
+                f'data/models/model-{self._model.name}-{self._train_tim}.h5',
                 monitor='val_loss',
                 mode='min',
                 save_best_only=True,
