@@ -14,7 +14,8 @@ load:
     - 378
     - 378
     - 1
-  limit_per_scene: null
+  # Supported options: int or 'null'
+  limit_per_scene: 3
   batch_size: 32
   validation_split: 0.8
   preprocess:
