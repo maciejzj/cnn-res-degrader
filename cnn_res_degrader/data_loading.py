@@ -250,9 +250,7 @@ def show_demo_sample():
 
     print(dir_scanner)
 
-    batch = 0
-    sample_in_batch = 0
-
+    batch, sample_in_batch = 0, 0
     plt.figure()
     plt.title('HR')
     plt.imshow(train_gen[batch][SampleEl.HR][sample_in_batch])

@@ -3,7 +3,7 @@ import yaml
 from functools import partial
 from pathlib import Path
 from statistics import mean
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -20,22 +20,23 @@ from cnn_res_degrader.data_loading import (
     SampleEl,
     SampleTransformation,
     Subset)
-from cnn_res_degrader.models import SimpleConv
+from cnn_res_degrader.models import make_model, Models
 
 
 CompareFunc = Callable[[np.ndarray, np.ndarray], float]
 
 
-def make_test_data(load_params: Dict[str, Any]) -> ProbaDataGenerator:
+def make_test_data(dataset: Dataset,
+                   input_shape: Tuple[int, int, int]) -> ProbaDataGenerator:
     dir_scanner = ProbaDirectoryScanner(
         Path('data/proba-v11_shifted'),
-        dataset=load_params['dataset'],
+        dataset=dataset,
         shuffle=False,
         subset=Subset.TEST)
 
     test_ds = ProbaDataGenerator(
         dir_scanner.paths,
-        hr_shape=load_params['input_shape'],
+        hr_shape=input_shape,
         shuffle=False,
         preprocessor=ProbaImagePreprocessor())
 
@@ -134,18 +135,24 @@ def make_params(params_path: Path) -> Dict[str, Any]:
     with open(params_path) as params_file:
         params = yaml.load(params_file, Loader=yaml.FullLoader)
     params['load']['dataset'] = Dataset[params['load']['dataset']]
+    params['model'] = Models[params['model']]
     return params
 
 
 def main():
     params = make_params(Path('params.yaml'))
 
-    test_ds = make_test_data(params['load'])
+    test_ds = make_test_data(
+        params['load']['dataset'],
+        params['load']['input_shape'])
 
     lr_sets_labels = ['real']
     lr_sets = [test_ds.to_lr_array()]
 
-    model = SimpleConv(params['load']['input_shape'])
+    model = make_model(
+        params['model'],
+        params['load']['input_shape'],
+        use_lr_masks=False)
     model.load_weights(sys.argv[1])
     lr_prediction_labels = ['pred_eqhist']
     lr_preds = model.predict(test_ds)
@@ -169,7 +176,8 @@ def main():
     plt.imshow(test_ds[batch][SampleEl.LR][sample_in_batch])
     plt.figure()
     plt.title('LR_PRED')
-    plt.imshow(lr_preds[0])
+    lr_idx = batch * params['load']['batch_size'] + sample_in_batch
+    plt.imshow(lr_preds[lr_idx])
 
     plt.show()
 

@@ -21,7 +21,7 @@ from cnn_res_degrader.data_loading import (
     ProbaHistEqualizer,
     ProbaHrToLrResizer)
 from cnn_res_degrader.metrics import make_ssim_metric
-from cnn_res_degrader.models import SimpleConv
+from cnn_res_degrader.models import make_model, Models
 
 
 TRAIN_LOSSES = {
@@ -89,25 +89,29 @@ def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
     return ProbaImagePreprocessor(*transformations)
 
 
-def make_training_data(load_params: Dict[str, Any]) -> Tuple[
-        ProbaDataGenerator, ProbaDataGenerator]:
+def make_training_data(
+        dataset: Dataset,
+        input_shape: Tuple[int, int, int],
+        validation_split: float,
+        preprocessor_params: Dict[str, Any],
+        limit_per_scene: int) -> Tuple[ProbaDataGenerator, ProbaDataGenerator]:
+
     dir_scanner = ProbaDirectoryScanner(
         Path('data/proba-v11_shifted'),
-        dataset=load_params['dataset'],
+        dataset=dataset,
         subset=Subset.TRAIN,
-        splits={'train': load_params['validation_split'],
-                'val': 1.0 - load_params['validation_split']},
-        limit_per_scene=load_params['limit_per_scene'])
-    preprocessor = make_preprocessor(load_params['preprocess'])
+        splits={'train': validation_split, 'val': 1.0 - validation_split},
+        limit_per_scene=limit_per_scene)
+    preprocessor = make_preprocessor(preprocessor_params)
 
     train_ds = ProbaDataGenerator(
         dir_scanner.get_split('train'),
-        hr_shape=load_params['input_shape'],
+        hr_shape=input_shape,
         preprocessor=preprocessor)
 
     val_ds = ProbaDataGenerator(
         dir_scanner.get_split('val'),
-        hr_shape=load_params['input_shape'],
+        hr_shape=input_shape,
         preprocessor=preprocessor)
 
     return train_ds, val_ds
@@ -117,6 +121,7 @@ def make_params(params_path: Path) -> Dict[str, Any]:
     with open(params_path) as params_file:
         params = yaml.load(params_file, Loader=yaml.FullLoader)
 
+    params['model'] = Models[params['model']]
     params['load']['dataset'] = Dataset[params['load']['dataset']]
     prep = params['load']['preprocess']
     prep['interpolation_mode'] = InterpolationMode[prep['interpolation_mode']]
@@ -127,14 +132,27 @@ def make_params(params_path: Path) -> Dict[str, Any]:
 
 def main():
     params = make_params(Path('params.yaml'))
-    train_ds, val_ds = make_training_data(params['load'])
-    model = SimpleConv(params['load']['input_shape'],
-                       name=f'{params["model"]}-{sys.argv[1]}',
-                       use_lr_masks=params['train']['use_lr_masks'])
+
+    train_ds, val_ds = make_training_data(
+        params['load']['dataset'],
+        params['load']['input_shape'],
+        params['load']['validation_split'],
+        params['load']['preprocess'],
+        params['load']['limit_per_scene'])
+
+    model = make_model(
+        params['model'],
+        params['load']['input_shape'],
+        name=f'{params["model"]}-{sys.argv[1]}',
+        use_lr_masks=params['train']['use_lr_masks'])
     model.get_functional().summary()
 
-    training = Training(model, params['train']['lr'], params['train']['loss'])
+    training = Training(
+        model,
+        params['train']['lr'],
+        params['train']['loss'])
     training.make_callbacks(params['train']['callbacks'])
+
     training.train(train_ds, val_ds, params['train']['epochs'])
 
 
