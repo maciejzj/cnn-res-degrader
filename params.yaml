@@ -2,7 +2,9 @@
 # List of incompatible options:
 # 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: SSIM'.
 
-model: simple_conv
+# Supported models: `SIMPLE_CONV`
+# Not implemented: `AUTOENCODER_CONV`, `GAN_SIMPLE_CONV`, `GAN_AUTOENCODER_CONV`
+model: SIMPLE_CONV
 
 load:
   # Supported datasets: 'NIR', 'RED'
