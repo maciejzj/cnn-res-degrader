@@ -60,13 +60,13 @@ class ProbaDirectoryScanner:
     def __len__(self):
         return len(self._paths)
 
-    def __repr__(self):
-        msg = (f'Proba scanner for directory: {self._path.absolute()}, found: '
-               f'{len(self._paths)} samples.\n')
+    def __str__(self):
+        msg = (f'Proba scanner for directory: {self._path.absolute()}\n'
+               f'Found: {len(self._paths)} samples.\n')
         if self._split_slices is not None:
             msg += 'Has slices:\n'
             for split_name in self._split_slices:
-                msg += (f'split_name: {len(self._split_slices[split_name])} '
+                msg += (f'{split_name}: {len(self._split_slices[split_name])} '
                         'samples.\n')
         return msg
 
@@ -238,7 +238,7 @@ def load_proba_img_as_array(path: Path) -> np.ndarray:
 
 def show_demo_sample():
     dir_scanner = ProbaDirectoryScanner(
-        Path('../proba-v11'),
+        Path('data/proba-v11_shifted'),
         dataset=Dataset.NIR,
         subset=Subset.TRAIN,
         splits={'train': 0.7, 'val': 0.3},
@@ -247,6 +247,8 @@ def show_demo_sample():
         ProbaHistEqualizer())
     train_gen = ProbaDataGenerator(
         dir_scanner.get_split('train'), preprocessor)
+
+    print(dir_scanner)
 
     batch = 0
     sample_in_batch = 0
