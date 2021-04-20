@@ -87,7 +87,7 @@ class SimpleConv(DegraderModelWithMaskableLoss):
             padding='same',
             activation='sigmoid')
 
-        self.build(input_shape)
+        self(tf.zeros((1, *input_shape)))
 
     def call(self, x):
         x = self.conv1(x)
@@ -131,7 +131,7 @@ class AutoencoderConv(DegraderModelWithMaskableLoss):
             padding='same',
             activation='sigmoid')
 
-        self.build(input_shape)
+        self(tf.zeros((1, *input_shape)))
 
     def call(self, x):
         x = self.conv1(x)
