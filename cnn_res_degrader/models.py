@@ -21,9 +21,9 @@ def make_model(model: Models, *args, **kwargs):
     return model_inits[model](*args, **kwargs)
 
 
-class ModelWithMaskableLoss(keras.Model):
+class DegraderModelWithMaskableLoss(keras.Model):
     def __init__(self, name: str):
-        super(ModelWithMaskableLoss, self).__init__(name=name)
+        super(DegraderModelWithMaskableLoss, self).__init__(name=name)
 
     @tf.function
     def train_step(self, data):
@@ -55,11 +55,15 @@ class ModelWithMaskableLoss(keras.Model):
         self.compiled_metrics.update_state(y, y_pred)
         return {m.name: m.result() for m in self.metrics}
 
+    def get_functional(self) -> keras.Model:
+        x = keras.Input(shape=self._input_shape)
+        return keras.Model(inputs=[x], outputs=self.call(x))
 
-class SimpleConv(ModelWithMaskableLoss):
+
+class SimpleConv(DegraderModelWithMaskableLoss):
     def __init__(self,
                  input_shape: Tuple[int, int, int],
-                 name='simple_conv',
+                 name='SimpleConv',
                  use_lr_masks=False):
 
         super(SimpleConv, self).__init__(name=name)
@@ -83,9 +87,7 @@ class SimpleConv(ModelWithMaskableLoss):
             padding='same',
             activation='sigmoid')
 
-        # 'Dry running' the model builds it, enabling things like `.summary()`
-        # and `.load_weights()`
-        self(tf.zeros((1, *input_shape)))
+        self.build(input_shape)
 
     def call(self, x):
         x = self.conv1(x)
@@ -93,14 +95,51 @@ class SimpleConv(ModelWithMaskableLoss):
         x = self.conv3(x)
         return x
 
-    def get_functional(self) -> keras.Model:
-        x = keras.Input(shape=self._input_shape)
-        return keras.Model(inputs=[x], outputs=self.call(x))
 
+class AutoencoderConv(DegraderModelWithMaskableLoss):
+    def __init__(self,
+                 input_shape: Tuple[int, int, int],
+                 name='AutoencoderConv',
+                 use_lr_masks=False):
 
-class AutoencoderConv(keras.Model):
-    def __init__(self):
-        raise NotImplementedError()
+        super(AutoencoderConv, self).__init__(name=name)
+        self._use_lr_masks = use_lr_masks
+        self._input_shape = input_shape
+
+        self.conv1 = layers.Conv2D(
+            64,
+            kernel_size=3,
+            padding='same',
+            activation='relu')
+        self.conv2 = layers.Conv2D(
+            64,
+            kernel_size=3,
+            strides=3,
+            padding='same',
+            activation='relu')
+        self.conv3 = layers.Conv2D(
+            64,
+            kernel_size=3,
+            strides=2,
+            padding='same',
+            activation='relu')
+        self.upsample = layers.UpSampling2D(
+            size=(2, 2))
+        self.conv4 = layers.Conv2D(
+            1,
+            kernel_size=3,
+            padding='same',
+            activation='sigmoid')
+
+        self.build(input_shape)
+
+    def call(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.upsample(x)
+        x = self.conv4(x)
+        return x
 
 
 class GanSimpleConv(keras.Model):
