@@ -222,7 +222,7 @@ class ProbaDataGenerator(keras.utils.Sequence):
         y_masks = np.empty((self._batch_size, *self._lr_shape))
         return x, y, y_masks
 
-    @ staticmethod
+    @staticmethod
     def _load_sample(sample_paths: SamplePaths):
         x = load_proba_img_as_array(sample_paths[SampleEl.HR])
         y = load_proba_img_as_array(sample_paths[SampleEl.LR])
