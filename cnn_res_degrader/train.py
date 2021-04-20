@@ -40,8 +40,10 @@ class Training:
 
     def make_callbacks(self, callbacks_params: Dict[str, Any]):
         if callbacks_params['tensorboard']:
+            log_dir = Path('log')
+            log_dir.mkdir(parents=True, exist_ok=True)
             self._callbacks.append(TensorBoard(
-                log_dir=f'log/fit-{self._model.name}-{self._train_tim}'))
+                log_dir=log_dir/f'fit-{self._model.name}-{self._train_tim}'))
 
         if callbacks_params['earlystopping']:
             self._callbacks.append(EarlyStopping(
@@ -52,8 +54,10 @@ class Training:
                 verbose=1))
 
         if callbacks_params['modelcheckpoint']:
+            log_dir = Path('data/models')
+            log_dir.mkdir(parents=True, exist_ok=True)
             self._callbacks.append(ModelCheckpoint(
-                f'data/models/model-{self._model.name}-{self._train_tim}.h5',
+                log_dir/f'model-{self._model.name}-{self._train_tim}.h5',
                 monitor='val_loss',
                 mode='min',
                 save_best_only=True,
