@@ -21,7 +21,10 @@ def make_model(model: Models, *args, **kwargs):
     return model_inits[model](*args, **kwargs)
 
 
-class TrainableWithMask:
+class ModelWithMaskableLoss(keras.Model):
+    def __init__(self, name: str):
+        super(ModelWithMaskableLoss, self).__init__(name=name)
+
     @tf.function
     def train_step(self, data):
         x, y, y_mask = data
@@ -53,7 +56,7 @@ class TrainableWithMask:
         return {m.name: m.result() for m in self.metrics}
 
 
-class SimpleConv(keras.Model, TrainableWithMask):
+class SimpleConv(ModelWithMaskableLoss):
     def __init__(self,
                  input_shape: Tuple[int, int, int],
                  name='simple_conv',
@@ -95,16 +98,16 @@ class SimpleConv(keras.Model, TrainableWithMask):
         return keras.Model(inputs=[x], outputs=self.call(x))
 
 
-class AutoencoderConv(keras.Model, TrainableWithMask):
+class AutoencoderConv(keras.Model):
     def __init__(self):
         raise NotImplementedError()
 
 
-class GanSimpleConv(keras.Model, TrainableWithMask):
+class GanSimpleConv(keras.Model):
     def __init__(self):
         raise NotImplementedError()
 
 
-class GanAutoencoderConv(keras.Model, TrainableWithMask):
+class GanAutoencoderConv(keras.Model):
     def __init__(self):
         raise NotImplementedError()
