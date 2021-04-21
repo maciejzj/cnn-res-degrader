@@ -21,22 +21,27 @@ from cnn_res_degrader.data_loading import (
     SampleTransformation,
     Subset)
 from cnn_res_degrader.models import make_model, Models
+from cnn_res_degrader.utils import enable_gpu_if_possible
 
 
 CompareFunc = Callable[[np.ndarray, np.ndarray], float]
 
 
 def make_test_data(dataset: Dataset,
-                   input_shape: Tuple[int, int, int]) -> ProbaDataGenerator:
+                   input_shape: Tuple[int, int, int],
+                   batch_size: int) -> ProbaDataGenerator:
     dir_scanner = ProbaDirectoryScanner(
         Path('data/proba-v11_shifted'),
         dataset=dataset,
         shuffle=False,
         subset=Subset.TEST)
 
+    print(dir_scanner)
+
     test_ds = ProbaDataGenerator(
         dir_scanner.paths,
         hr_shape=input_shape,
+        batch_size=batch_size,
         shuffle=False,
         preprocessor=ProbaImagePreprocessor())
 
@@ -140,11 +145,13 @@ def make_params(params_path: Path) -> Dict[str, Any]:
 
 
 def main():
+    enable_gpu_if_possible()
     params = make_params(Path('params.yaml'))
 
     test_ds = make_test_data(
         params['load']['dataset'],
-        params['load']['input_shape'])
+        params['load']['input_shape'],
+        params['load']['batch_size'])
 
     lr_sets_labels = ['real']
     lr_sets = [test_ds.to_lr_array()]
@@ -167,13 +174,16 @@ def main():
 
     demo_heatmaps(lr_sets, lr_sets_labels)
 
-    batch, sample_in_batch = 0, 0
+    batch, sample_in_batch = 29, 16
     plt.figure()
     plt.title('HR')
     plt.imshow(test_ds[batch][SampleEl.HR][sample_in_batch])
     plt.figure()
     plt.title('LR')
     plt.imshow(test_ds[batch][SampleEl.LR][sample_in_batch])
+    plt.figure()
+    plt.title('LR ARTIFICIAL')
+    plt.imshow(artificial_dss[0][batch][SampleEl.LR][sample_in_batch])
     plt.figure()
     plt.title('LR_PRED')
     lr_idx = batch * params['load']['batch_size'] + sample_in_batch

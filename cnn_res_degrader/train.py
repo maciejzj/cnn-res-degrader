@@ -22,6 +22,7 @@ from cnn_res_degrader.data_loading import (
     ProbaHrToLrResizer)
 from cnn_res_degrader.metrics import make_ssim_metric
 from cnn_res_degrader.models import make_model, Models
+from cnn_res_degrader.utils import enable_gpu_if_possible
 
 
 TRAIN_LOSSES = {
@@ -96,6 +97,7 @@ def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
 def make_training_data(
         dataset: Dataset,
         input_shape: Tuple[int, int, int],
+        batch_size: int,
         validation_split: float,
         preprocessor_params: Dict[str, Any],
         limit_per_scene: int) -> Tuple[ProbaDataGenerator, ProbaDataGenerator]:
@@ -111,11 +113,13 @@ def make_training_data(
     train_ds = ProbaDataGenerator(
         dir_scanner.get_split('train'),
         hr_shape=input_shape,
+        batch_size=batch_size,
         preprocessor=preprocessor)
 
     val_ds = ProbaDataGenerator(
         dir_scanner.get_split('val'),
         hr_shape=input_shape,
+        batch_size=batch_size,
         preprocessor=preprocessor)
 
     return train_ds, val_ds
@@ -136,10 +140,12 @@ def make_params(params_path: Path) -> Dict[str, Any]:
 
 def main():
     params = make_params(Path('params.yaml'))
+    enable_gpu_if_possible()
 
     train_ds, val_ds = make_training_data(
         params['load']['dataset'],
         params['load']['input_shape'],
+        params['load']['batch_size'],
         params['load']['validation_split'],
         params['load']['preprocess'],
         params['load']['limit_per_scene'])

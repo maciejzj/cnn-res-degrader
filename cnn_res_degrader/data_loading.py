@@ -84,7 +84,7 @@ class ProbaDirectoryScanner:
     def _collect_data_paths(self):
         ret = []
         scenes_path = self._path/self._subset.value/self._dataset.value
-        for scenedir in scenes_path.iterdir():
+        for scenedir in sorted(scenes_path.iterdir()):
             if scenedir.is_dir():
                 ret += self._collect_data_paths_in_scene(scenedir)
 
