@@ -1,64 +1,73 @@
-from tensorflow.keras import layers
-
-import sys
 import yaml
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Dict
 
 import tensorflow as tf
 import numpy as np
 from tensorflow import keras
-from tensorflow.keras.callbacks import (
-    EarlyStopping,
-    ModelCheckpoint,
-    TensorBoard)
 from cnn_res_degrader.data_loading import (
     Dataset,
-    Subset,
     InterpolationMode,
-    ProbaDataGenerator,
-    ProbaDirectoryScanner,
     ProbaImagePreprocessor,
     ProbaHistEqualizer,
     ProbaHrToLrResizer)
-from cnn_res_degrader.metrics import make_ssim_metric
-from cnn_res_degrader.models import make_model, Models
+from cnn_res_degrader.models import Models
 from cnn_res_degrader.train import make_training_data
 from cnn_res_degrader.test import make_test_data
+from cnn_res_degrader.utils import enable_gpu_if_possible
+
 from matplotlib import pyplot as plt
 
-# Create the discriminator
-discriminator = keras.Sequential(
-    [
-        keras.Input(shape=(126, 126, 1)),
-        layers.Conv2D(64, (3, 3), strides=(2, 2),
-                      padding="same"),
-        layers.LeakyReLU(),
-        layers.MaxPool2D(),
-        layers.Conv2D(64, (3, 3), strides=(2, 2),
-                      padding="same"),
-        layers.MaxPool2D(),
-        layers.LeakyReLU(),
-        layers.Flatten(),
-        layers.Dropout(rate=0.5),
-        layers.Dense(1, activation='sigmoid'),
-    ],
-    name="discriminator",
-)
+
+enable_gpu_if_possible()
 
 
-# Create the generator
-generator = keras.Sequential(
-    [
-        keras.Input(shape=(378, 378, 1)),
-        layers.Conv2D(64, kernel_size=3, padding="same", activation='relu'),
-        layers.Conv2D(64, kernel_size=3, strides=3,
-                      padding="same", activation='relu'),
-        layers.Conv2D(1, kernel_size=3, padding="same", activation='sigmoid'),
-    ],
-    name="generator",
-)
+def make_discriminator() -> keras.Model:
+    discriminator = keras.Sequential(
+        [
+            keras.Input(shape=(126, 126, 1)),
+            keras.layers.Conv2D(64,
+                                kernel_size=3,
+                                strides=2,
+                                padding='same'),
+            keras.layers.LeakyReLU(),
+            keras.layers.MaxPool2D(),
+            keras.layers.Conv2D(64,
+                                kernel_size=3,
+                                strides=2,
+                                padding='same'),
+            keras.layers.MaxPool2D(),
+            keras.layers.LeakyReLU(),
+            keras.layers.Flatten(),
+            keras.layers.Dropout(rate=0.5),
+            keras.layers.Dense(1, activation='sigmoid'),
+        ],
+        name='discriminator',
+    )
+    return discriminator
+
+
+def make_generator() -> keras.Model:
+    generator = keras.Sequential(
+        [
+            keras.Input(shape=(378, 378, 1)),
+            keras.layers.Conv2D(64,
+                                kernel_size=3,
+                                padding='same',
+                                activation='relu'),
+            keras.layers.Conv2D(64,
+                                kernel_size=3,
+                                strides=3,
+                                padding='same',
+                                activation='relu'),
+            keras.layers.Conv2D(1,
+                                kernel_size=3,
+                                padding='same',
+                                activation='sigmoid'),
+        ],
+        name='generator',
+    )
+    return generator
 
 
 class GAN(keras.Model):
@@ -75,36 +84,28 @@ class GAN(keras.Model):
 
     def train_step(self, data):
         x, y, y_mask = data
-
-        # Sample random points in the latent space
         batch_size = tf.shape(x)[0]
+
         y_fake = self.generator(x)
 
-        # Combine them with real images
-        combined_images = tf.concat([y_fake, y], axis=0)
-
-        # Assemble labels discriminating real from fake images
-        labels = tf.concat(
-            [tf.zeros((batch_size, 1)), tf.ones((batch_size, 1))], axis=0
-        )
-        # Add random noise to the labels - important trick!
+        # Discriminator training
+        discriminator_input = tf.concat([y_fake, y], axis=0)
+        fake_labels = tf.zeros((batch_size, 1))
+        true_labels = tf.ones((batch_size, 1))
+        labels = tf.concat([fake_labels, true_labels], axis=0)
         labels += 0.05 * tf.random.uniform(tf.shape(labels))
 
-        # Train the discriminator
         with tf.GradientTape() as tape:
-            y_pred = self.discriminator(combined_images)
+            y_pred = self.discriminator(discriminator_input)
             d_loss = self.loss_fn(labels, y_pred)
 
         grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
         self.d_optimizer.apply_gradients(
-            zip(grads, self.discriminator.trainable_weights)
-        )
+            zip(grads, self.discriminator.trainable_weights))
 
-        # Assemble labels that say "all real images"
+        # Generator training
         misleading_labels = tf.ones((batch_size, 1))
 
-        # Train the generator (note that we should *not* update the weights
-        # of the discriminator)!
         with tf.GradientTape() as tape:
             y_pred = self.discriminator(self.generator(x))
             g_loss = self.loss_fn(misleading_labels, y_pred)
@@ -112,7 +113,8 @@ class GAN(keras.Model):
         grads = tape.gradient(g_loss, self.generator.trainable_weights)
         self.g_optimizer.apply_gradients(
             zip(grads, self.generator.trainable_weights))
-        return {"d_loss": d_loss, "g_loss": g_loss}
+
+        return {'d_loss': d_loss, 'g_loss': g_loss}
 
     def call(self, x):
         x = self.generator(x)
@@ -153,33 +155,38 @@ def main():
         params['load']['batch_size'],
         params['load']['validation_split'],
         params['load']['preprocess'],
-        params['load']['limit_per_scene'])
+        None)
 
-    gan = GAN(discriminator=discriminator, generator=generator)
+    gan = GAN(discriminator=make_discriminator(),
+              generator=make_generator())
     gan.compile(
         d_optimizer=keras.optimizers.Adam(learning_rate=0.0001),
         g_optimizer=keras.optimizers.Adam(learning_rate=0.0001),
         loss_fn=keras.losses.BinaryCrossentropy(),
     )
+    gan.fit(train_ds, epochs=5)
 
-    gan.fit(train_ds, epochs=50)
     test_ds = make_test_data(
         params['load']['dataset'],
         params['load']['input_shape'],
         params['load']['batch_size'])
-    # To limit the execution time, we only train on 100 batches. You can train on
-    # the entire dataset. You will need about 20 epochs to get nice results.
-    pred = gan(np.expand_dims(test_ds[29][0][16], axis=0))
+
+    pred = gan(np.expand_dims(test_ds[29*4][0][7], axis=0))
+
     plt.figure()
-    plt.title('pred inv')
-    plt.imshow(1 - pred[0])
+    plt.title('hr')
+    plt.imshow(test_ds[29*4][0][7])
+    plt.savefig('hr.png', dpi=300)
+
     plt.figure()
-    plt.title('inv')
+    plt.title('pred')
     plt.imshow(pred[0])
+    plt.savefig('pred.png', dpi=300)
+
     plt.figure()
     plt.title('lr')
-    plt.imshow(test_ds[29][1][16][1:-1,1:-1,:])
-    plt.show()
+    plt.imshow(test_ds[29*4][1][7][1:-1, 1:-1, :])
+    plt.savefig('lr.png', dpi=300)
 
 
 if __name__ == '__main__':
