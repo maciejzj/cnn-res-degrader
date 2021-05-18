@@ -58,7 +58,7 @@ AUTOENCODER:
 
   train:
     lr: 0.0001
-    epochs: 1
+    epochs: 100
     # Supported losses: 'MAE', 'MSE', 'SSIM'
     loss: MSE
     use_lr_masks: true
