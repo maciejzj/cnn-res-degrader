@@ -68,6 +68,7 @@ class Training:
                 monitor='val_loss',
                 mode='min',
                 save_best_only=callbacks_params['save_best_only'],
+                save_weights_only=True,
                 verbose=1))
 
         if callbacks_params['preview']:
