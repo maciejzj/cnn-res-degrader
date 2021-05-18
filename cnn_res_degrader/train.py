@@ -1,8 +1,8 @@
-import sys
 import yaml
+import argparse
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import tensorflow as tf
 from tensorflow import keras
@@ -21,18 +21,23 @@ from cnn_res_degrader.data_loading import (
     ProbaHistEqualizer,
     ProbaHrToLrResizer)
 from cnn_res_degrader.metrics import make_ssim_metric
-from cnn_res_degrader.models import make_model, Models
+from cnn_res_degrader.models import make_model, Models, Gan
 from cnn_res_degrader.utils import enable_gpu_if_possible
+from cnn_res_degrader.callbacks import InferenceImagePreview
 
 
 TRAIN_LOSSES = {
+    'BINARY_CROSSENTROPY': keras.losses.BinaryCrossentropy(),
     'MAE': keras.losses.MeanAbsoluteError(),
     'MSE': keras.losses.MeanSquaredError(),
     'SSIM': make_ssim_metric()}
 
 
 class Training:
-    def __init__(self, model: keras.Model, lr: float, loss: Callable):
+    def __init__(self,
+                 model: keras.Model,
+                 lr: Union[float, Dict[str, float]],
+                 loss: Callable):
         self._model = model
         self._lr = lr
         self._loss = loss
@@ -41,7 +46,7 @@ class Training:
 
     def make_callbacks(self, callbacks_params: Dict[str, Any]):
         if callbacks_params['tensorboard']:
-            log_dir = Path('log')
+            log_dir = Path(f'data/models/{self._model.name}')
             log_dir.mkdir(parents=True, exist_ok=True)
             self._callbacks.append(TensorBoard(
                 log_dir=log_dir/f'fit-{self._model.name}-{self._train_tim}'))
@@ -55,25 +60,45 @@ class Training:
                 verbose=1))
 
         if callbacks_params['modelcheckpoint']:
-            log_dir = Path('data/models')
+            log_dir = Path(f'data/models/{self._model.name}')
+            name = f'model-{self._model.name}-{self._train_tim}_' + 'e{epoch}.h5'
             log_dir.mkdir(parents=True, exist_ok=True)
             self._callbacks.append(ModelCheckpoint(
-                log_dir/f'model-{self._model.name}-{self._train_tim}.h5',
+                log_dir/name,
                 monitor='val_loss',
                 mode='min',
-                save_best_only=True,
+                save_best_only=callbacks_params['save_best_only'],
                 verbose=1))
+
+        if callbacks_params['preview']:
+            log_dir = Path(f'data/models/{self._model.name}/'
+                           f'preview-{self._model.name}-{self._train_tim}')
+            log_dir.mkdir(parents=True, exist_ok=True)
+            self._callbacks.append(InferenceImagePreview(
+                hr_path=Path(
+                    'data/proba-v11_shifted/test/NIR/imgset0596/HR000.png'),
+                lr_path=Path(
+                    'data/proba-v11_shifted/test/NIR/imgset0596/LR000.png'),
+                output_dir=log_dir))
 
     def train(self,
               train_ds: keras.utils.Sequence,
               val_ds: keras.utils.Sequence,
-              epochs: int):
-        self._model.compile(loss=self._loss,
-                            optimizer=keras.optimizers.Adam(
-                                learning_rate=self._lr),
-                            metrics=[
-                                keras.metrics.MeanAbsoluteError(),
-                                keras.metrics.MeanSquaredError()])
+              epochs: int) -> keras.Model:
+        if type(self._model) is Gan:
+            d_lr = self._lr['discriminator']
+            g_lr = self._lr['generator']
+            self._model.compile(
+                loss_fn=self._loss,
+                d_optimizer=keras.optimizers.Adam(learning_rate=g_lr),
+                g_optimizer=keras.optimizers.Adam(learning_rate=d_lr))
+        else:
+            self._model.compile(loss=self._loss,
+                                optimizer=keras.optimizers.Adam(
+                                    learning_rate=self._lr),
+                                metrics=[
+                                    keras.metrics.MeanAbsoluteError(),
+                                    keras.metrics.MeanSquaredError()])
         self._model.fit(train_ds,
                         validation_data=val_ds,
                         epochs=epochs,
@@ -125,11 +150,11 @@ def make_training_data(
     return train_ds, val_ds
 
 
-def make_params(params_path: Path) -> Dict[str, Any]:
+def make_params(params_path: Path, model_type: Models) -> Dict[str, Any]:
     with open(params_path) as params_file:
-        params = yaml.load(params_file, Loader=yaml.FullLoader)
+        params = yaml.load(params_file, Loader=yaml.FullLoader)[
+            model_type.name]
 
-    params['model'] = Models[params['model']]
     params['load']['dataset'] = Dataset[params['load']['dataset']]
     prep = params['load']['preprocess']
     prep['interpolation_mode'] = InterpolationMode[prep['interpolation_mode']]
@@ -138,9 +163,14 @@ def make_params(params_path: Path) -> Dict[str, Any]:
     return params
 
 
-def main():
-    params = make_params(Path('params.yaml'))
-    enable_gpu_if_possible()
+def train(model_type: Models, training_name: str):
+    params = make_params(Path('params.yaml'), model_type)
+
+    model = make_model(
+        model_type,
+        params['load']['input_shape'],
+        name=f'{model_type.name}-{training_name}',
+        use_lr_masks=params['train']['use_lr_masks'])
 
     train_ds, val_ds = make_training_data(
         params['load']['dataset'],
@@ -150,12 +180,8 @@ def main():
         params['load']['preprocess'],
         params['load']['limit_per_scene'])
 
-    model = make_model(
-        params['model'],
-        params['load']['input_shape'],
-        name=f'{params["model"]}-{sys.argv[1]}',
-        use_lr_masks=params['train']['use_lr_masks'])
-    model.get_functional().summary()
+    if type(model) is not Gan:
+        model.get_functional().summary()
 
     training = Training(
         model,
@@ -164,6 +190,29 @@ def main():
     training.make_callbacks(params['train']['callbacks'])
 
     training.train(train_ds, val_ds, params['train']['epochs'])
+
+
+def main():
+    enable_gpu_if_possible()
+
+    parser = argparse.ArgumentParser(description='Train networks.')
+
+    parser.add_argument('-s', '--simple', action='store_true',
+                        help='Train simple conv net.')
+    parser.add_argument('-a', '--autoencoder', action='store_true',
+                        help='Train autoencoder et.')
+    parser.add_argument('-g', '--gan', action='store_true',
+                        help='Train gan net.')
+    parser.add_argument('training_name')
+
+    args = parser.parse_args()
+
+    if args.simple:
+        train(Models.SIMPLE_CONV, args.training_name)
+    if args.autoencoder:
+        train(Models.AUTOENCODER, args.training_name)
+    if args.gan:
+        train(Models.GAN, args.training_name)
 
 
 if __name__ == '__main__':

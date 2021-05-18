@@ -67,11 +67,11 @@ class ProbaDirectoryScanner:
             msg += 'Has slices:\n'
             for split_name in self._split_slices:
                 msg += (f'{split_name}: {len(self._split_slices[split_name])} '
-                        'samples.\n')
+                        'samples.')
         return msg
 
     @property
-    def paths(self):
+    def paths(self) -> List[SamplePaths]:
         return self._paths
 
     def get_split(self, split_name: str) -> List[SamplePaths]:

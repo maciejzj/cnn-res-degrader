@@ -2,40 +2,109 @@
 # List of incompatible options:
 # 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: SSIM'.
 
-# Supported models: 'SIMPLE_CONV'
-# Not implemented: 'AUTOENCODER_CONV', 'GAN_SIMPLE_CONV', 'GAN_AUTOENCODER_CONV'
-model: SIMPLE_CONV
+SIMPLE_CONV:
+  load:
+    # Supported datasets: 'NIR', 'RED'
+    dataset: NIR
+    # Must be divisible by three.
+    input_shape:
+      - 378
+      - 378
+      - 1
+    # Supported options: int or 'null'
+    limit_per_scene: null
+    batch_size: 8
+    validation_split: 0.8
+    preprocess:
+      equalize_hist: true
+      artificial_lr: false
+      # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
+      interpolation_mode: BICUBIC
 
-load:
-  # Supported datasets: 'NIR', 'RED'
-  dataset: NIR
-  # Must be divisible by three.
-  input_shape: 
-    - 378
-    - 378
-    - 1
-  # Supported options: int or 'null'
-  limit_per_scene: null
-  batch_size: 8
-  validation_split: 0.8
-  preprocess:
-    equalize_hist: true
-    artificial_lr: false
-    # Supported interpolation modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
-    interpolation_mode: BICUBIC
-      
-train:
-  lr: 0.0001
-  epochs: 100
-  # Supported losses: 'MAE', 'MSE', 'SSIM'
-  loss: MSE
-  use_lr_masks: true
+  train:
+    lr: 0.0001
+    epochs: 100
+    # Supported losses: 'MAE', 'MSE', 'SSIM'
+    loss: MSE
+    use_lr_masks: true
+  
+    callbacks:
+      tensorboard: true
+      modelcheckpoint: true
+      save_best_only: true
+      earlystopping: true
+      stopping_delta: 0.001
+      stopping_patience: 5
+      preview: true
 
-  callbacks:
-    tensorboard: true
-    modelcheckpoint: true
-    earlystopping: true
-    stopping_delta: 0.001
-    stopping_patience: 5
+AUTOENCODER:
+  load:
+    # Supported datasets: 'NIR', 'RED'
+    dataset: NIR
+    # Must be divisible by three.
+    input_shape:
+      - 378
+      - 378
+      - 1
+    # Supported options: int or 'null'
+    limit_per_scene: null
+    batch_size: 8
+    validation_split: 0.8
+    preprocess:
+      equalize_hist: true
+      artificial_lr: false
+      # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
+      interpolation_mode: BICUBIC
 
-test:
+  train:
+    lr: 0.0001
+    epochs: 1
+    # Supported losses: 'MAE', 'MSE', 'SSIM'
+    loss: MSE
+    use_lr_masks: true
+
+    callbacks:
+      tensorboard: true
+      modelcheckpoint: true
+      save_best_only: true
+      earlystopping: true
+      stopping_delta: 0.001
+      stopping_patience: 5
+      preview: true
+
+GAN:
+  load:
+    # Supported datasets: 'NIR', 'RED'
+    dataset: NIR
+    # Must be divisible by three.
+    input_shape:
+      - 378
+      - 378
+      - 1
+    # Supported options: int or 'null'
+    limit_per_scene: null
+    batch_size: 8
+    validation_split: 0.8
+    preprocess:
+      equalize_hist: true
+      artificial_lr: false
+      # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
+      interpolation_mode: BICUBIC
+
+  train:
+    lr:
+      discriminator: 0.0001
+      generator: 0.0001
+    epochs: 10
+    loss: BINARY_CROSSENTROPY
+    use_lr_masks: false
+    
+    callbacks:
+      tensorboard: true
+      modelcheckpoint: true
+      save_best_only: false
+      # Earlystopping is currently not supported for GAN
+      earlystopping: false
+      stopping_delta: 0.0
+      stopping_patience: 0
+      preview: true

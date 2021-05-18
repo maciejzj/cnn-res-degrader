@@ -1,6 +1,6 @@
 import yaml
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import tensorflow as tf
 import numpy as np
@@ -10,22 +10,31 @@ from cnn_res_degrader.data_loading import (
     InterpolationMode,
     ProbaImagePreprocessor,
     ProbaHistEqualizer,
-    ProbaHrToLrResizer)
-from cnn_res_degrader.models import Models
-from cnn_res_degrader.train import make_training_data
-from cnn_res_degrader.test import make_test_data
-from cnn_res_degrader.utils import enable_gpu_if_possible
+    ProbaHrToLrResizer,
+    hr_shape_to_lr_shape)
 
 from matplotlib import pyplot as plt
 
 
-enable_gpu_if_possible()
+def make_gan(input_shape: Tuple[int, int, int],
+             name='Gan',
+             use_lr_masks=False) -> keras.Model:
+    if use_lr_masks is True:
+        raise NotImplementedError()
+    
+    discriminator = make_discriminator(hr_shape_to_lr_shape(input_shape))
+    generator = make_generator(input_shape)
+    gan = Gan(name=name,
+              input_shape=input_shape,
+              discriminator=discriminator,
+              generator=generator)
+    return gan
 
 
-def make_discriminator() -> keras.Model:
+def make_discriminator(input_shape: Tuple[int, int, int]) -> keras.Model:
     discriminator = keras.Sequential(
         [
-            keras.Input(shape=(126, 126, 1)),
+            keras.Input(shape=input_shape),
             keras.layers.Conv2D(64,
                                 kernel_size=3,
                                 strides=2,
@@ -47,7 +56,7 @@ def make_discriminator() -> keras.Model:
     return discriminator
 
 
-def make_generator() -> keras.Model:
+def make_generator(input_shape: Tuple[int, int, int]) -> keras.Model:
     generator = keras.Sequential(
         [
             keras.Input(shape=(378, 378, 1)),
@@ -70,14 +79,16 @@ def make_generator() -> keras.Model:
     return generator
 
 
-class GAN(keras.Model):
-    def __init__(self, discriminator, generator):
-        super(GAN, self).__init__()
+class Gan(keras.Model):
+    def __init__(self, name, input_shape, discriminator, generator):
+        super(Gan, self).__init__(name=name)
         self.discriminator = discriminator
         self.generator = generator
 
-    def compile(self, d_optimizer, g_optimizer, loss_fn):
-        super(GAN, self).compile()
+        self(tf.zeros((1, *input_shape)))
+
+    def compile(self, loss_fn, d_optimizer, g_optimizer):
+        super(Gan, self).compile()
         self.d_optimizer = d_optimizer
         self.g_optimizer = g_optimizer
         self.loss_fn = loss_fn
@@ -116,78 +127,14 @@ class GAN(keras.Model):
 
         return {'d_loss': d_loss, 'g_loss': g_loss}
 
+
+    def test_step(self, data):
+         x, y, y_mask = data
+         y_pred = self(x, training=False)
+         loss = self.loss_fn(y, y_pred)
+         return {'loss': loss}
+
+
     def call(self, x):
         x = self.generator(x)
         return x
-
-
-def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
-    transformations = []
-
-    if prep_params['equalize_hist']:
-        transformations.append(ProbaHistEqualizer())
-
-    if prep_params['artificial_lr']:
-        transformations.append(ProbaHrToLrResizer(
-            prep_params['interpolation_mode']))
-
-    return ProbaImagePreprocessor(*transformations)
-
-
-def make_params(params_path: Path) -> Dict[str, Any]:
-    with open(params_path) as params_file:
-        params = yaml.load(params_file, Loader=yaml.FullLoader)
-
-    params['model'] = Models[params['model']]
-    params['load']['dataset'] = Dataset[params['load']['dataset']]
-    prep = params['load']['preprocess']
-    prep['interpolation_mode'] = InterpolationMode[prep['interpolation_mode']]
-
-    return params
-
-
-def main():
-    params = make_params(Path('params.yaml'))
-
-    train_ds, val_ds = make_training_data(
-        params['load']['dataset'],
-        params['load']['input_shape'],
-        params['load']['batch_size'],
-        params['load']['validation_split'],
-        params['load']['preprocess'],
-        None)
-
-    gan = GAN(discriminator=make_discriminator(),
-              generator=make_generator())
-    gan.compile(
-        d_optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-        g_optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-        loss_fn=keras.losses.BinaryCrossentropy(),
-    )
-    gan.fit(train_ds, epochs=5)
-
-    test_ds = make_test_data(
-        params['load']['dataset'],
-        params['load']['input_shape'],
-        params['load']['batch_size'])
-
-    pred = gan(np.expand_dims(test_ds[29*4][0][7], axis=0))
-
-    plt.figure()
-    plt.title('hr')
-    plt.imshow(test_ds[29*4][0][7])
-    plt.savefig('hr.png', dpi=300)
-
-    plt.figure()
-    plt.title('pred')
-    plt.imshow(pred[0])
-    plt.savefig('pred.png', dpi=300)
-
-    plt.figure()
-    plt.title('lr')
-    plt.imshow(test_ds[29*4][1][7][1:-1, 1:-1, :])
-    plt.savefig('lr.png', dpi=300)
-
-
-if __name__ == '__main__':
-    main()
