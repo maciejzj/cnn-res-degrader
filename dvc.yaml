@@ -1,0 +1,38 @@
+stages:
+  train_simple_conv:
+    cmd: python -m cnn_res_degrader.train -s dvc
+    deps:
+      - data/proba-v11_shifted
+      - cnn_res_degrader/data_loading.py
+      - cnn_res_degrader/train.py
+      - cnn_res_degrader/metrics.py
+      - cnn_res_degrader/models/simple_conv.py
+      - cnn_res_degrader/models/maskable_degrader.py
+      - cnn_res_degrader/models/common.py
+    outs:
+      - data/models/SIMPLE_CONV-dvc
+
+  train_autoencoder:
+    cmd: python -m cnn_res_degrader.train -a dvc
+    deps:
+      - data/proba-v11_shifted
+      - cnn_res_degrader/data_loading.py
+      - cnn_res_degrader/train.py
+      - cnn_res_degrader/metrics.py
+      - cnn_res_degrader/models/autoencoder.py
+      - cnn_res_degrader/models/maskable_degrader.py
+      - cnn_res_degrader/models/common.py
+    outs:
+      - data/models/AUTOENCODER-dvc
+
+  train_gan:
+    cmd: python -m cnn_res_degrader.train -g dvc
+    deps:
+      - data/proba-v11_shifted
+      - cnn_res_degrader/data_loading.py
+      - cnn_res_degrader/train.py
+      - cnn_res_degrader/metrics.py
+      - cnn_res_degrader/models/gan.py
+      - cnn_res_degrader/models/common.py
+    outs:
+      - data/models/GAN-dvc
