@@ -38,4 +38,4 @@ class MaskableDegrader(keras.Model):
 
     def get_functional(self) -> keras.Model:
         x = keras.Input(shape=self._input_shape)
-        return keras.Model(inputs=[x], outputs=self.call(x))
+        return keras.Model(inputs=[x], outputs=self.call(x), name=self.name)
