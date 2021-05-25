@@ -125,7 +125,6 @@ def main():
         params['load']['input_shape'],
         use_lr_masks=False)
     model.load_weights(args.weights_path)
-    print('dupa')
 
     if args.demo:
         demo_hr_path = Path(

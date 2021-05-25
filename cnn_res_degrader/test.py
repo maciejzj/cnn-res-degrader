@@ -118,32 +118,37 @@ def plot_all_vs_all_heatmap(data: np.ndarray,
     return fig
 
 
-def make_heatmaps(lr_sets: List[np.ndarray], labels: List[str]) -> List[plt.Figure]:
+def make_heatmaps(lr_sets: List[np.ndarray], labels: List[str]) -> Dict[str, plt.Figure]:
     if len(lr_sets) != len(labels):
         raise ValueError('Got different number of sets and labels')
 
-    figs = []
+    figs = {}
 
     heatmap = make_heatmap_data(
         lr_sets,
         lambda x, y: metrics.peak_signal_noise_ratio(x, y, data_range=1.))
     fig = plot_all_vs_all_heatmap(heatmap, labels, 'PSNR (larger is better)')
-    figs.append(fig)
+    figs['psnr'] = fig
 
     heatmap = make_heatmap_data(
         lr_sets,
         lambda x, y: metrics.structural_similarity(
             x, y, data_range=1., multichannel=True))
     fig = plot_all_vs_all_heatmap(heatmap, labels, 'SSIM (larger is better)')
-    figs.append(fig)
+    figs['ssim'] = fig
 
     heatmap = make_heatmap_data(
         lr_sets,
         metrics.mean_squared_error)
     fig = plot_all_vs_all_heatmap(heatmap * 10e3, labels,
                                   'MSE 10e3 (smaller is better)')
-    figs.append(fig)
+    figs['mse'] = fig
     return figs
+
+
+def extract_name_from_weights_path(path: Path) -> str:
+    name_offset = 6
+    return path.stem[name_offset:]
 
 
 def make_params(params_path: Path, model_type: Models) -> Dict[str, Any]:
@@ -156,14 +161,18 @@ def make_params(params_path: Path, model_type: Models) -> Dict[str, Any]:
     return params
 
 
-def test(model_type: Models, weights_path: Path):
+def test(model_type: Models, weights_path: Path, output_dir: Path):
     params = make_params(Path('params.yaml'), model_type)
+    name = extract_name_from_weights_path(weights_path)
 
     model = make_model(
         model_type,
         params['load']['input_shape'],
         use_lr_masks=False)
     model.load_weights(weights_path)
+
+    output_dir = output_dir/f'test-{name}'
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     test_ds = make_test_data(
         params['load']['dataset'],
@@ -173,7 +182,7 @@ def test(model_type: Models, weights_path: Path):
     lr_sets_labels = ['real']
     lr_sets = [test_ds.to_lr_array()]
 
-    lr_prediction_labels = ['pred_eqhist']
+    lr_prediction_labels = ['pred']
     print('Running test inference:')
     lr_preds = model.predict(test_ds, verbose=1)
     lr_sets_labels += lr_prediction_labels
@@ -187,7 +196,10 @@ def test(model_type: Models, weights_path: Path):
     lr_sets += lr_artificials
 
     print('Creating metrics heatmaps.')
-    make_heatmaps(lr_sets, lr_sets_labels)
+    figs = make_heatmaps(lr_sets, lr_sets_labels)
+    for fig_key in figs:
+        figs[fig_key].savefig(
+            output_dir/f'{fig_key}_heatmap-{name}.png', dpi=300)
 
     batch, sample_in_batch = 0, 0
     hr_img = test_ds[batch][SampleEl.HR][sample_in_batch]
@@ -195,16 +207,16 @@ def test(model_type: Models, weights_path: Path):
     pred_img = lr_preds[batch * params['load']['batch_size'] + sample_in_batch]
 
     print('Creating comparison figures.')
-    make_comparison_fig(hr_img, lr_img, pred_img, add_resized_lr=True)
+    fig = make_comparison_fig(hr_img, lr_img, pred_img, add_resized_lr=True)
+    fig.savefig(output_dir/f'test_preview-{name}.png', dpi=300)
 
     lr_margin = 30
-    make_comparison_fig(crop_border(hr_img, lr_margin * 3),
-                        crop_border(lr_img, lr_margin),
-                        crop_border(pred_img, lr_margin),
-                        add_resized_lr=True)
-    print('Figures generation done.')
-
-    plt.show()
+    fig = make_comparison_fig(crop_border(hr_img, lr_margin * 3),
+                              crop_border(lr_img, lr_margin),
+                              crop_border(pred_img, lr_margin),
+                              add_resized_lr=True)
+    fig.savefig(output_dir/f'test_preview_zoomed-{name}.png', dpi=300)
+    print('Figures generation done, saving.')
 
 
 def main():
@@ -221,15 +233,18 @@ def main():
                                  help='Train gan net.')
 
     parser.add_argument('weights_path')
+    parser.add_argument('output_dir')
 
     args = parser.parse_args()
+    weights_path = Path(args.weights_path)
+    output_dir = Path(args.output_dir)
 
     if args.simple:
-        test(Models.SIMPLE_CONV, args.weights_path)
+        test(Models.SIMPLE_CONV, weights_path, output_dir)
     elif args.autoencoder:
-        test(Models.AUTOENCODER, args.weights_path)
+        test(Models.AUTOENCODER, weights_path, output_dir)
     elif args.gan:
-        test(Models.GAN, args.weights_path)
+        test(Models.GAN, weights_path, output_dir)
 
 
 if __name__ == '__main__':
