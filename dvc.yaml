@@ -1,6 +1,8 @@
 stages:
   train_simple_conv:
     cmd: python -m cnn_res_degrader.train -s dvc
+    params:
+      - SIMPLE_CONV
     deps:
       - data/proba-v11_shifted
       - cnn_res_degrader/data_loading.py
@@ -14,6 +16,8 @@ stages:
 
   train_autoencoder:
     cmd: python -m cnn_res_degrader.train -a dvc
+    params:
+      - AUTOENCODER
     deps:
       - data/proba-v11_shifted
       - cnn_res_degrader/data_loading.py
@@ -27,6 +31,8 @@ stages:
 
   train_gan:
     cmd: python -m cnn_res_degrader.train -g dvc
+    params:
+      - GAN
     deps:
       - data/proba-v11_shifted
       - cnn_res_degrader/data_loading.py

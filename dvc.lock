@@ -1,87 +1,178 @@
-train_simple_conv:
-  cmd: python -m cnn_res_degrader.train -s dvc
-  deps:
-  - path: cnn_res_degrader/data_loading.py
-    md5: a49ae7b63f86b94821e216fcba455010
-    size: 8537
-  - path: cnn_res_degrader/metrics.py
-    md5: ea7e6b5316589d9f9d44ba089743a676
-    size: 380
-  - path: cnn_res_degrader/models/common.py
-    md5: 810fb88f6c63d9c5f797439f18ecb223
-    size: 572
-  - path: cnn_res_degrader/models/maskable_degrader.py
-    md5: 4b9831e5d7ea8f5084fd98bcb5f23574
-    size: 1481
-  - path: cnn_res_degrader/models/simple_conv.py
-    md5: c3306dc639e7ca1fc4bf7f86c965357e
-    size: 1088
-  - path: cnn_res_degrader/train.py
-    md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-    size: 7626
-  - path: data/proba-v11_shifted
-    md5: 1982f665115f81728f29d952e0d281b1.dir
-    size: 3540075174
-    nfiles: 66882
-  outs:
-  - path: data/models/SIMPLE_CONV-dvc
-    md5: 3865b6531ab5321232336e997849420f.dir
-    size: 3934898
-    nfiles: 21
-train_autoencoder:
-  cmd: python -m cnn_res_degrader.train -a dvc
-  deps:
-  - path: cnn_res_degrader/data_loading.py
-    md5: a49ae7b63f86b94821e216fcba455010
-    size: 8537
-  - path: cnn_res_degrader/metrics.py
-    md5: ea7e6b5316589d9f9d44ba089743a676
-    size: 380
-  - path: cnn_res_degrader/models/autoencoder.py
-    md5: 00a0edfd518fb289d7a4824486c50bb2
-    size: 1381
-  - path: cnn_res_degrader/models/common.py
-    md5: 810fb88f6c63d9c5f797439f18ecb223
-    size: 572
-  - path: cnn_res_degrader/models/maskable_degrader.py
-    md5: 4b9831e5d7ea8f5084fd98bcb5f23574
-    size: 1481
-  - path: cnn_res_degrader/train.py
-    md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-    size: 7626
-  - path: data/proba-v11_shifted
-    md5: 1982f665115f81728f29d952e0d281b1.dir
-    size: 3540075174
-    nfiles: 66882
-  outs:
-  - path: data/models/AUTOENCODER-dvc
-    md5: 382adddbc77ac00bca7fdac77f7ffffb.dir
-    size: 4733118
-    nfiles: 21
-train_gan:
-  cmd: python -m cnn_res_degrader.train -g dvc
-  deps:
-  - path: cnn_res_degrader/data_loading.py
-    md5: a49ae7b63f86b94821e216fcba455010
-    size: 8537
-  - path: cnn_res_degrader/metrics.py
-    md5: ea7e6b5316589d9f9d44ba089743a676
-    size: 380
-  - path: cnn_res_degrader/models/common.py
-    md5: 810fb88f6c63d9c5f797439f18ecb223
-    size: 572
-  - path: cnn_res_degrader/models/gan.py
-    md5: ba32a0b774cd4d29e5fb128784b02fe8
-    size: 4495
-  - path: cnn_res_degrader/train.py
-    md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-    size: 7626
-  - path: data/proba-v11_shifted
-    md5: 1982f665115f81728f29d952e0d281b1.dir
-    size: 3540075174
-    nfiles: 66882
-  outs:
-  - path: data/models/GAN-dvc
-    md5: dd7e0b6ecc1023fedff012487a4a3444.dir
-    size: 8558740
-    nfiles: 30
+schema: '2.0'
+stages:
+  train_simple_conv:
+    cmd: python -m cnn_res_degrader.train -s dvc
+    deps:
+    - path: cnn_res_degrader/data_loading.py
+      md5: a49ae7b63f86b94821e216fcba455010
+      size: 8537
+    - path: cnn_res_degrader/metrics.py
+      md5: ea7e6b5316589d9f9d44ba089743a676
+      size: 380
+    - path: cnn_res_degrader/models/common.py
+      md5: 810fb88f6c63d9c5f797439f18ecb223
+      size: 572
+    - path: cnn_res_degrader/models/maskable_degrader.py
+      md5: 4b9831e5d7ea8f5084fd98bcb5f23574
+      size: 1481
+    - path: cnn_res_degrader/models/simple_conv.py
+      md5: c3306dc639e7ca1fc4bf7f86c965357e
+      size: 1088
+    - path: cnn_res_degrader/train.py
+      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
+      size: 7626
+    - path: data/proba-v11_shifted
+      md5: 1982f665115f81728f29d952e0d281b1.dir
+      size: 3540331206
+      nfiles: 66882
+    params:
+      params.yaml:
+        SIMPLE_CONV:
+          load:
+            dataset: NIR
+            input_shape:
+            - 378
+            - 378
+            - 1
+            limit_per_scene:
+            batch_size: 8
+            validation_split: 0.8
+            preprocess:
+              equalize_hist: true
+              artificial_lr: false
+              interpolation_mode: BICUBIC
+          train:
+            lr: 0.0001
+            epochs: 100
+            loss: MSE
+            use_lr_masks: true
+            callbacks:
+              tensorboard: true
+              modelcheckpoint: true
+              save_best_only: true
+              earlystopping: true
+              stopping_delta: 0.001
+              stopping_patience: 5
+              preview: true
+    outs:
+    - path: data/models/SIMPLE_CONV-dvc
+      md5: 3865b6531ab5321232336e997849420f.dir
+      size: 3934898
+      nfiles: 21
+  train_autoencoder:
+    cmd: python -m cnn_res_degrader.train -a dvc
+    deps:
+    - path: cnn_res_degrader/data_loading.py
+      md5: a49ae7b63f86b94821e216fcba455010
+      size: 8537
+    - path: cnn_res_degrader/metrics.py
+      md5: ea7e6b5316589d9f9d44ba089743a676
+      size: 380
+    - path: cnn_res_degrader/models/autoencoder.py
+      md5: 00a0edfd518fb289d7a4824486c50bb2
+      size: 1381
+    - path: cnn_res_degrader/models/common.py
+      md5: 810fb88f6c63d9c5f797439f18ecb223
+      size: 572
+    - path: cnn_res_degrader/models/maskable_degrader.py
+      md5: 4b9831e5d7ea8f5084fd98bcb5f23574
+      size: 1481
+    - path: cnn_res_degrader/train.py
+      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
+      size: 7626
+    - path: data/proba-v11_shifted
+      md5: 1982f665115f81728f29d952e0d281b1.dir
+      size: 3540331206
+      nfiles: 66882
+    params:
+      params.yaml:
+        AUTOENCODER:
+          load:
+            dataset: NIR
+            input_shape:
+            - 378
+            - 378
+            - 1
+            limit_per_scene:
+            batch_size: 8
+            validation_split: 0.8
+            preprocess:
+              equalize_hist: true
+              artificial_lr: false
+              interpolation_mode: BICUBIC
+          train:
+            lr: 0.0001
+            epochs: 100
+            loss: MSE
+            use_lr_masks: true
+            callbacks:
+              tensorboard: true
+              modelcheckpoint: true
+              save_best_only: true
+              earlystopping: true
+              stopping_delta: 0.001
+              stopping_patience: 5
+              preview: true
+    outs:
+    - path: data/models/AUTOENCODER-dvc
+      md5: 382adddbc77ac00bca7fdac77f7ffffb.dir
+      size: 4733118
+      nfiles: 21
+  train_gan:
+    cmd: python -m cnn_res_degrader.train -g dvc
+    deps:
+    - path: cnn_res_degrader/data_loading.py
+      md5: a49ae7b63f86b94821e216fcba455010
+      size: 8537
+    - path: cnn_res_degrader/metrics.py
+      md5: ea7e6b5316589d9f9d44ba089743a676
+      size: 380
+    - path: cnn_res_degrader/models/common.py
+      md5: 810fb88f6c63d9c5f797439f18ecb223
+      size: 572
+    - path: cnn_res_degrader/models/gan.py
+      md5: ba32a0b774cd4d29e5fb128784b02fe8
+      size: 4495
+    - path: cnn_res_degrader/train.py
+      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
+      size: 7626
+    - path: data/proba-v11_shifted
+      md5: 1982f665115f81728f29d952e0d281b1.dir
+      size: 3540331206
+      nfiles: 66882
+    params:
+      params.yaml:
+        GAN:
+          load:
+            dataset: NIR
+            input_shape:
+            - 378
+            - 378
+            - 1
+            limit_per_scene:
+            batch_size: 8
+            validation_split: 0.8
+            preprocess:
+              equalize_hist: true
+              artificial_lr: false
+              interpolation_mode: BICUBIC
+          train:
+            lr:
+              discriminator: 0.0001
+              generator: 0.0001
+            epochs: 10
+            loss: BINARY_CROSSENTROPY
+            use_lr_masks: false
+            callbacks:
+              tensorboard: true
+              modelcheckpoint: true
+              save_best_only: false
+              earlystopping: false
+              stopping_delta: 0.0
+              stopping_patience: 0
+              preview: true
+    outs:
+    - path: data/models/GAN-dvc
+      md5: dd7e0b6ecc1023fedff012487a4a3444.dir
+      size: 8558740
+      nfiles: 30
