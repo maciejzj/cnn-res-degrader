@@ -1,7 +1,9 @@
 schema: '2.0'
 stages:
   train_simple_conv:
-    cmd: python -m cnn_res_degrader.train -s dvc
+    cmd:
+    - rm -rf data/models/SIMPLE_CONV-dvc
+    - python -m cnn_res_degrader.train -s dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
       md5: a49ae7b63f86b94821e216fcba455010
@@ -60,7 +62,9 @@ stages:
       size: 3934898
       nfiles: 21
   train_autoencoder:
-    cmd: python -m cnn_res_degrader.train -a dvc
+    cmd:
+    - rm -rf data/models/AUTOENCODER-dvc
+    - python -m cnn_res_degrader.train -a dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
       md5: a49ae7b63f86b94821e216fcba455010
@@ -119,7 +123,9 @@ stages:
       size: 4733118
       nfiles: 21
   train_gan:
-    cmd: python -m cnn_res_degrader.train -g dvc
+    cmd:
+    - rm -rf data/models/AUTOENCODER-dvc
+    - python -m cnn_res_degrader.train -g dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
       md5: a49ae7b63f86b94821e216fcba455010
