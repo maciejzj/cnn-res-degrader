@@ -1,7 +1,7 @@
 stages:
   train_simple_conv:
     cmd:
-      - rm -r data/models/SIMPLE_CONV-dvc
+      - rm -rf data/models/SIMPLE_CONV-dvc
       - python -m cnn_res_degrader.train -s dvc
     params:
       - SIMPLE_CONV
@@ -18,7 +18,7 @@ stages:
 
   train_autoencoder:
     cmd:
-      - rm -r data/models/AUTOENCODER-dvc
+      - rm -rf data/models/AUTOENCODER-dvc
       - python -m cnn_res_degrader.train -a dvc
     params:
       - AUTOENCODER
@@ -35,7 +35,7 @@ stages:
 
   train_gan:
     cmd:
-      - rm -r data/models/AUTOENCODER-dvc
+      - rm -rf data/models/AUTOENCODER-dvc
       - python -m cnn_res_degrader.train -g dvc
     params:
       - GAN
