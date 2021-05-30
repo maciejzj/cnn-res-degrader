@@ -6,7 +6,7 @@ stages:
     params:
       - SIMPLE_CONV
     deps:
-      - data/proba-v11_shifted
+      - data/proba-v_registered
       - cnn_res_degrader/data_loading.py
       - cnn_res_degrader/train.py
       - cnn_res_degrader/metrics.py
@@ -23,7 +23,7 @@ stages:
     params:
       - AUTOENCODER
     deps:
-      - data/proba-v11_shifted
+      - data/proba-v_registered
       - cnn_res_degrader/data_loading.py
       - cnn_res_degrader/train.py
       - cnn_res_degrader/metrics.py
@@ -40,7 +40,7 @@ stages:
     params:
       - GAN
     deps:
-      - data/proba-v11_shifted
+      - data/proba-v_registered
       - cnn_res_degrader/data_loading.py
       - cnn_res_degrader/train.py
       - cnn_res_degrader/metrics.py

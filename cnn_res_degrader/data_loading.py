@@ -237,7 +237,7 @@ def load_proba_img_as_array(path: Path) -> np.ndarray:
 
 def show_demo_sample():
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v11_shifted'),
+        Path('data/proba-v_registered'),
         dataset=Dataset.NIR,
         subset=Subset.TRAIN,
         splits={'train': 0.7, 'val': 0.3},
