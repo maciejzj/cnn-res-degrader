@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict
 
 import numpy as np
 from scipy.ndimage import shift
-from skimage import io, img_as_float, img_as_uint, exposure
+from skimage import exposure, io, img_as_float, img_as_uint
 from matplotlib import pyplot as plt
 
 from cnn_res_degrader.models import make_model, Models
@@ -14,9 +14,6 @@ from cnn_res_degrader.utils import (
     enable_gpu_if_possible,
     img_as_batch,
     make_comparison_fig)
-
-
-SENTINEL_FILE_BIT_RANGE = 'uint16'
 
 
 def transform_sentinel_dataset_3xlrs(transformation: Callable,
@@ -40,7 +37,8 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
         save_sentinel_img(new_hr_dir/'hr.png', cropped_hr)
 
         for lr_idx in translations.keys():
-            shifted_hr = shift(hr, (*translations[lr_idx], 0))
+            hr_xy_shift = (3 * s for s in translations[lr_idx])
+            shifted_hr = shift(hr, (*hr_xy_shift, 0))
             lr = transformation(img_as_batch(shifted_hr))[0]
             cropped_lr = crop_border(lr, 1)
             save_sentinel_img(new_lr_dir/f'lr_0{lr_idx}.png', cropped_lr)
@@ -50,8 +48,7 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
 
 def load_sentinel_img_as_array(path: Path) -> np.ndarray:
     img = np.expand_dims(io.imread(path, as_gray=False), axis=2)
-    return exposure.rescale_intensity(
-        img, in_range=SENTINEL_FILE_BIT_RANGE, out_range='float64')
+    return img_as_float(img)
 
 
 def save_sentinel_img(path: Path, img):
