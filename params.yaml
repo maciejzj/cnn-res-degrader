@@ -33,7 +33,7 @@ SIMPLE_CONV:
       modelcheckpoint: true
       save_best_only: true
       earlystopping: true
-      stopping_delta: 0.001
+      stopping_delta: 0.0
       stopping_patience: 5
       preview: true
 
@@ -68,7 +68,7 @@ AUTOENCODER:
       modelcheckpoint: true
       save_best_only: true
       earlystopping: true
-      stopping_delta: 0.001
+      stopping_delta: 0.0
       stopping_patience: 5
       preview: true
 
@@ -95,7 +95,7 @@ GAN:
     lr:
       discriminator: 0.0001
       generator: 0.0001
-    epochs: 50
+    epochs: 100
     loss: BINARY_CROSSENTROPY
     use_lr_masks: false
     
