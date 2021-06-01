@@ -67,8 +67,8 @@ stages:
     - python -m cnn_res_degrader.train -a dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: d7f65f174b7b77656dc0077ea5c60e03
-      size: 8489
+      md5: c0522e1e912720d01815f91a63ab99b9
+      size: 8606
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
@@ -119,17 +119,17 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: e0331a43c29c4aa965afa2703104bc26.dir
-      size: 21196922
-      nfiles: 59
+      md5: 00440f13fb457786436b74863d02e70b.dir
+      size: 21473685
+      nfiles: 60
   train_gan:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
     - python -m cnn_res_degrader.train -g dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: d7f65f174b7b77656dc0077ea5c60e03
-      size: 8489
+      md5: c0522e1e912720d01815f91a63ab99b9
+      size: 8606
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
@@ -179,6 +179,6 @@ stages:
               preview: true
     outs:
     - path: data/models/GAN-dvc
-      md5: 2444ef8d00be59d3cb360d1779ae5c33.dir
-      size: 81193159
+      md5: 613450f809ae7295becbc54d66e0082e.dir
+      size: 81224607
       nfiles: 210
