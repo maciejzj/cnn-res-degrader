@@ -37,13 +37,12 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
         save_sentinel_img(new_hr_dir/'hr.png', cropped_hr)
 
         for lr_idx in translations.keys():
-            hr_xy_shift = (3 * s for s in translations[lr_idx])
+            hr_xy_shift = (-3 * s for s in translations[lr_idx])
             shifted_hr = shift(hr, (*hr_xy_shift, 0))
             lr = transformation(img_as_batch(shifted_hr))[0]
             cropped_lr = crop_border(lr, 1)
             save_sentinel_img(new_lr_dir/f'lr_0{lr_idx}.png', cropped_lr)
-            print(progress_iterator)
-            progress_iterator += 1
+            print(progress_iterator := progress_iterator + 1)
 
 
 def load_sentinel_img_as_array(path: Path) -> np.ndarray:
