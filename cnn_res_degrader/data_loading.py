@@ -7,7 +7,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
-from skimage import exposure, io, img_as_float
+from skimage import exposure, io
 from tensorflow import keras
 
 
@@ -232,7 +232,10 @@ class ProbaDataGenerator(keras.utils.Sequence):
 
 def load_proba_img_as_array(path: Path) -> np.ndarray:
     img = np.expand_dims(io.imread(path, as_gray=False), axis=2)
-    return img_as_float(img)
+    img = np.clip(img, a_min=None, a_max=pow(2, 14))
+    img = exposure.rescale_intensity(
+        img, in_range='uint14', out_range=(0.0, 1.0))
+    return img
 
 
 def show_demo_sample():

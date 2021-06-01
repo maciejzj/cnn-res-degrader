@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict
 
 import numpy as np
 from scipy.ndimage import shift
-from skimage import exposure, io, img_as_float, img_as_uint
+from skimage import exposure, io
 from matplotlib import pyplot as plt
 
 from cnn_res_degrader.models import make_model, Models
@@ -47,11 +47,15 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
 
 def load_sentinel_img_as_array(path: Path) -> np.ndarray:
     img = np.expand_dims(io.imread(path, as_gray=False), axis=2)
-    return img_as_float(img)
+    img = np.clip(img, a_min=None, a_max=pow(2, 14))
+    img = exposure.rescale_intensity(
+        img, in_range='uint14', out_range=(0.0, 1.0))
+    return img
 
 
 def save_sentinel_img(path: Path, img):
-    img_to_save = img_as_uint(img)
+    img_to_save = exposure.rescale_intensity(
+        img, in_range=(0.0, 1.0), out_range='uint14')
     io.imsave(path, img_to_save)
 
 
