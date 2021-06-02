@@ -6,8 +6,8 @@ stages:
     - python -m cnn_res_degrader.train -s dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: d7f65f174b7b77656dc0077ea5c60e03
-      size: 8489
+      md5: c0522e1e912720d01815f91a63ab99b9
+      size: 8606
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
@@ -58,9 +58,9 @@ stages:
               preview: true
     outs:
     - path: data/models/SIMPLE_CONV-dvc
-      md5: 18b2bb3484e4403a5a5216fe39f1b01e.dir
-      size: 19263622
-      nfiles: 59
+      md5: 561cb7f5fb19a103433ece0dd0e25a6e.dir
+      size: 13370148
+      nfiles: 45
   train_autoencoder:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
