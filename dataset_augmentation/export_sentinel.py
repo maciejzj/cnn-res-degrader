@@ -1,7 +1,8 @@
 import argparse
+import random
 import yaml
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Tuple
 
 import numpy as np
 from scipy.ndimage import shift
@@ -18,7 +19,8 @@ from cnn_res_degrader.utils import (
 
 def transform_sentinel_dataset_3xlrs(transformation: Callable,
                                      path: Path,
-                                     output_suffix: str):
+                                     output_suffix: str,
+                                     random_translations: bool):
     progress_iterator = 0
 
     for hr_path in path.glob('*/**/hr.png'):
@@ -30,8 +32,12 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
         hr = load_sentinel_img_as_array(hr_path)
         cropped_hr = crop_border(hr, 3)
 
-        translations_path = hr_path.parent/'lr_3x/translations.txt'
-        translations = load_obj_from_repr_file(translations_path)
+        if random_translations:
+            random.seed(1)
+            translations = make_random_tranlations()
+        else:
+            translations_path = hr_path.parent/'lr_3x/translations.txt'
+            translations = load_obj_from_repr_file(translations_path)
 
         save_obj_to_repr_file(translations, new_hr_dir/'translations.txt')
         save_sentinel_img(new_hr_dir/'hr.png', cropped_hr)
@@ -43,6 +49,14 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
             cropped_lr = crop_border(lr, 1)
             save_sentinel_img(new_lr_dir/f'lr_0{lr_idx}.png', cropped_lr)
             print(progress_iterator := progress_iterator + 1)
+
+
+def make_random_translations() -> Dict[str, Tuple[float, float]]:
+    ret = {}
+    for i in range(9):
+        key = str(i)
+        ret[key] = (random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
+    return ret
 
 
 def load_sentinel_img_as_array(path: Path) -> np.ndarray:
@@ -73,7 +87,7 @@ def save_obj_to_repr_file(obj: Any, path: Path):
 def demo_export(transformation: Callable, hr_path: Path):
     hr_img = load_sentinel_img_as_array(hr_path)
     lr_img = load_sentinel_img_as_array(hr_path.parent/'lr_3x/lr_00.png')
-    lr_img_deg = transformation(img_as_batch(hr_img))[0]
+    lr_img_deg = np.array(transformation(img_as_batch(hr_img))[0])
     make_comparison_fig(hr_img, lr_img, lr_img_deg, add_resized_lr=True)
 
     lr_margin = 30
@@ -104,6 +118,8 @@ def main():
     model_selection.add_argument('-g', '--gan', action='store_true',
                                  help='Train gan net.')
 
+    parser.add_argument('-r', '--random_tranlations', action='store_true',
+                        help='Don\'t export dataset, demo inference.')
     parser.add_argument('-d', '--demo', action='store_true',
                         help='Don\'t export dataset, demo inference.')
     parser.add_argument('weights_path')
@@ -138,7 +154,8 @@ def main():
     else:
         sentinel_root_path = Path('data/sentinel-2_artificial/')
         suffix = str(weights_path.stem)
-        transform_sentinel_dataset_3xlrs(model, sentinel_root_path, suffix)
+        transform_sentinel_dataset_3xlrs(
+            model, sentinel_root_path, suffix, args.random_translations)
 
 
 if __name__ == '__main__':

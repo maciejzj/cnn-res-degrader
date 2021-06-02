@@ -34,7 +34,7 @@ def find_best_weights(model: keras.Model,
             best_ssim = ssim_score
             best_weights_file_path = weights_file_path
             print(f'Found new best SSIM: {best_ssim}')
-        
+
         print()
 
     return best_ssim, best_weights_file_path
