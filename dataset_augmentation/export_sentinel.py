@@ -112,14 +112,15 @@ def main():
 
     model_selection = parser.add_mutually_exclusive_group()
     model_selection.add_argument('-s', '--simple', action='store_true',
-                                 help='Train simple conv net.')
+                                 help='Export using simple conv net.')
     model_selection.add_argument('-a', '--autoencoder', action='store_true',
-                                 help='Train autoencoder et.')
+                                 help='Export using autoencoder net.')
     model_selection.add_argument('-g', '--gan', action='store_true',
-                                 help='Train gan net.')
+                                 help='Export using gan net.')
 
-    parser.add_argument('-r', '--random_tranlations', action='store_true',
-                        help='Don\'t export dataset, demo inference.')
+    parser.add_argument('-r', '--random_translations', action='store_true',
+                        help='Generate random LR translations instead of using'
+                             ' transaltions file.')
     parser.add_argument('-d', '--demo', action='store_true',
                         help='Don\'t export dataset, demo inference.')
     parser.add_argument('weights_path')
