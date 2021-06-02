@@ -1,5 +1,6 @@
 import argparse
 import random
+import sys
 import yaml
 from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
@@ -34,7 +35,7 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
 
         if random_translations:
             random.seed(1)
-            translations = make_random_tranlations()
+            translations = make_random_translations()
         else:
             translations_path = hr_path.parent/'lr_3x/translations.txt'
             translations = load_obj_from_repr_file(translations_path)
@@ -48,14 +49,17 @@ def transform_sentinel_dataset_3xlrs(transformation: Callable,
             lr = transformation(img_as_batch(shifted_hr))[0]
             cropped_lr = crop_border(lr, 1)
             save_sentinel_img(new_lr_dir/f'lr_0{lr_idx}.png', cropped_lr)
-            print(progress_iterator := progress_iterator + 1)
+            print('LRs saved:', progress_iterator := progress_iterator + 1)
+            sys.stdout.flush()
 
 
 def make_random_translations() -> Dict[str, Tuple[float, float]]:
     ret = {}
     for i in range(9):
         key = str(i)
-        ret[key] = (random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
+        x_shift = np.clip(random.gauss(0.0, 0.25), a_min=-1.0, a_max=1.0)
+        y_shift = np.clip(random.gauss(0.0, 0.25), a_min=-1.0, a_max=1.0)
+        ret[key] = (x_shift, y_shift)
     return ret
 
 
