@@ -57,8 +57,9 @@ def make_random_translations() -> Dict[str, Tuple[float, float]]:
     ret = {}
     for i in range(9):
         key = str(i)
-        x_shift = np.clip(random.gauss(0.0, 0.25), a_min=-1.0, a_max=1.0)
-        y_shift = np.clip(random.gauss(0.0, 0.25), a_min=-1.0, a_max=1.0)
+        max_v = 0.95 / 3.0
+        x_shift = random.uniform(-max_v, max_v)
+        y_shift = random.uniform(-max_v, max_v)
         ret[key] = (x_shift, y_shift)
     return ret
 
