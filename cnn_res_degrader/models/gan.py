@@ -106,7 +106,7 @@ class Gan(keras.Model):
         fake_labels = tf.zeros((batch_size, 1))
         true_labels = tf.ones((batch_size, 1))
         labels = tf.concat([fake_labels, true_labels], axis=0)
-        labels += 0.05 * tf.random.uniform(tf.shape(labels))
+        labels += 0.15 * tf.random.uniform(tf.shape(labels))
 
         with tf.GradientTape() as tape:
             y_pred = self.discriminator(discriminator_input)

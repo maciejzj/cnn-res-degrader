@@ -10,6 +10,7 @@ from tensorflow.keras.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
     TensorBoard)
+from tensorflow.python.ops.numpy_ops import np_config
 
 from cnn_res_degrader.data_loading import (
     Dataset,
@@ -24,6 +25,9 @@ from cnn_res_degrader.metrics import make_ssim_metric
 from cnn_res_degrader.models import make_model, Models, Gan
 from cnn_res_degrader.utils import enable_gpu_if_possible
 from cnn_res_degrader.callbacks import InferenceImagePreview
+
+
+np_config.enable_numpy_behavior()
 
 
 TRAIN_LOSSES = {

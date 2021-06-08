@@ -16,6 +16,6 @@ class InferenceImagePreview(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         img_pred = self.model(self._batch_input)[0]
         cmpr_fig = make_comparison_fig(self._hr_img, self._lr_img, img_pred)
-        output_path = self._output_dir/f'{self.model.name}-epoch_{epoch}.png'
+        output_path = self._output_dir/f'{self.model.name}-epoch_{epoch+1}.png'
         print(f'Saving inference preview at: {output_path}.')
         cmpr_fig.savefig(output_path, dpi=300)
