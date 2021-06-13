@@ -22,7 +22,7 @@ def make_gan(input_shape: Tuple[int, int, int],
              use_lr_masks=False) -> keras.Model:
     if use_lr_masks is True:
         raise NotImplementedError()
-    
+
     discriminator = make_discriminator(hr_shape_to_lr_shape(input_shape))
     generator = make_generator(input_shape)
     gan = Gan(name=name,
@@ -49,6 +49,8 @@ def make_discriminator(input_shape: Tuple[int, int, int]) -> keras.Model:
             keras.layers.MaxPool2D(),
             keras.layers.LeakyReLU(),
             keras.layers.Flatten(),
+            keras.layers.Dense(3),
+            keras.layers.LeakyReLU(),
             keras.layers.Dropout(rate=0.5),
             keras.layers.Dense(1, activation='sigmoid'),
         ],
@@ -85,6 +87,7 @@ class Gan(keras.Model):
         super(Gan, self).__init__(name=name)
         self.discriminator = discriminator
         self.generator = generator
+        self.step_counter = 0
 
         self(tf.zeros((1, *input_shape)))
 
@@ -102,19 +105,20 @@ class Gan(keras.Model):
         y_fake = self.generator(x)
 
         # Discriminator training
-        discriminator_input = tf.concat([y_fake, y], axis=0)
-        fake_labels = tf.zeros((batch_size, 1))
-        true_labels = tf.ones((batch_size, 1))
-        labels = tf.concat([fake_labels, true_labels], axis=0)
-        labels += 0.15 * tf.random.uniform(tf.shape(labels))
+        if(self.step_counter % 3):
+            discriminator_input = tf.concat([y_fake, y], axis=0)
+            fake_labels = tf.zeros((batch_size, 1))
+            true_labels = tf.ones((batch_size, 1))
+            labels = tf.concat([fake_labels, true_labels], axis=0)
+            labels += 0.15 * tf.random.uniform(tf.shape(labels))
 
-        with tf.GradientTape() as tape:
-            y_pred = self.discriminator(discriminator_input)
-            d_loss = self.loss_fn(labels, y_pred)
+            with tf.GradientTape() as tape:
+                y_pred = self.discriminator(discriminator_input)
+                d_loss = self.loss_fn(labels, y_pred)
 
-        grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
-        self.d_optimizer.apply_gradients(
-            zip(grads, self.discriminator.trainable_weights))
+            grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
+            self.d_optimizer.apply_gradients(
+                zip(grads, self.discriminator.trainable_weights))
 
         # Generator training
         misleading_labels = tf.ones((batch_size, 1))
@@ -127,16 +131,16 @@ class Gan(keras.Model):
         self.g_optimizer.apply_gradients(
             zip(grads, self.generator.trainable_weights))
 
+        self.step_counter += 1
+
         return {'d_loss': d_loss, 'g_loss': g_loss}
 
-
     def test_step(self, data):
-         x, y, y_mask = data
-         y_pred = self(x, training=False)
-         loss = self.val_loss_fn(y, y_pred)
-         return {'loss': loss}
-
+        x, y, y_mask = data
+        y_pred = self(x, training=False)
+        loss = self.val_loss_fn(y, y_pred)
+        return {'loss': loss}
 
     def call(self, x):
-        x = self.generator(x)
+        x = self.generator(x, training=False)
         return x
