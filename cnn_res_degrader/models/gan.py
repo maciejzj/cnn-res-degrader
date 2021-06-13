@@ -105,7 +105,7 @@ class Gan(keras.Model):
         y_fake = self.generator(x)
 
         # Discriminator training
-        if(self.step_counter % 3):
+        if(self.step_counter % 3 == 0):
             discriminator_input = tf.concat([y_fake, y], axis=0)
             fake_labels = tf.zeros((batch_size, 1))
             true_labels = tf.ones((batch_size, 1))

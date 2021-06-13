@@ -95,7 +95,7 @@ GAN:
     lr:
       discriminator: 0.0001
       generator: 0.0001
-    epochs: 100
+    epochs: 75
     loss: BINARY_CROSSENTROPY
     use_lr_masks: false
     

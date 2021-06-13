@@ -21,8 +21,8 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-      size: 7626
+      md5: 969c8b668d0d23d7f8775c242a9170b7
+      size: 7716
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -58,9 +58,9 @@ stages:
               preview: true
     outs:
     - path: data/models/SIMPLE_CONV-dvc
-      md5: 561cb7f5fb19a103433ece0dd0e25a6e.dir
-      size: 13370148
-      nfiles: 45
+      md5: 30b46dced2fbcc0233d388debb3e74ed.dir
+      size: 18586820
+      nfiles: 52
   train_autoencoder:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
@@ -82,8 +82,8 @@ stages:
       md5: 4b9831e5d7ea8f5084fd98bcb5f23574
       size: 1481
     - path: cnn_res_degrader/train.py
-      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-      size: 7626
+      md5: 969c8b668d0d23d7f8775c242a9170b7
+      size: 7716
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -119,9 +119,9 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: 00440f13fb457786436b74863d02e70b.dir
-      size: 21473685
-      nfiles: 60
+      md5: 438bb07f210467faf1b1f4d6932abff9.dir
+      size: 15521447
+      nfiles: 42
   train_gan:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
@@ -137,11 +137,11 @@ stages:
       md5: 810fb88f6c63d9c5f797439f18ecb223
       size: 572
     - path: cnn_res_degrader/models/gan.py
-      md5: 2c3a923893b25d9b86e5b476ef55db2c
+      md5: a130df9f38e78cad0e0ab2250f139b3f
       size: 4599
     - path: cnn_res_degrader/train.py
-      md5: 62e13c19ef79e0c3847dc7fe4e323a5c
-      size: 7626
+      md5: 969c8b668d0d23d7f8775c242a9170b7
+      size: 7716
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -166,7 +166,7 @@ stages:
             lr:
               discriminator: 0.0001
               generator: 0.0001
-            epochs: 100
+            epochs: 50
             loss: BINARY_CROSSENTROPY
             use_lr_masks: false
             callbacks:
@@ -179,6 +179,6 @@ stages:
               preview: true
     outs:
     - path: data/models/GAN-dvc
-      md5: 613450f809ae7295becbc54d66e0082e.dir
-      size: 81224607
-      nfiles: 210
+      md5: 91c3917c1043a7de61b33587d124da7a.dir
+      size: 45066920
+      nfiles: 110
