@@ -81,9 +81,9 @@ class Training:
             log_dir.mkdir(parents=True, exist_ok=True)
             self._callbacks.append(InferenceImagePreview(
                 hr_path=Path(
-                    'data/proba-v11_shifted/test/NIR/imgset0596/HR000.png'),
+                    'data/proba-v_registered/test/NIR/imgset0596/HR000.png'),
                 lr_path=Path(
-                    'data/proba-v11_shifted/test/NIR/imgset0596/LR000.png'),
+                    'data/proba-v_registered/test/NIR/imgset0596/LR000.png'),
                 output_dir=log_dir))
 
     def train(self,
@@ -133,7 +133,7 @@ def make_training_data(
         limit_per_scene: int) -> Tuple[ProbaDataGenerator, ProbaDataGenerator]:
 
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v11_shifted'),
+        Path('data/proba-v_registered'),
         dataset=dataset,
         subset=Subset.TRAIN,
         splits={'train': validation_split, 'val': 1.0 - validation_split},

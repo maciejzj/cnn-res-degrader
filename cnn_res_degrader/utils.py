@@ -27,7 +27,7 @@ def make_comparison_fig(hr_img: np.ndarray,
                         add_resized_lr=False) -> figure.Figure:
     pixel_values = np.concatenate(
         (hr_img.ravel(), lr_img.ravel(), pred_img.ravel()))
-    max_display_value = pixel_values.mean() + 2 * pixel_values.std()
+    max_display_value = pixel_values.mean() + 3 * pixel_values.std()
 
     if add_resized_lr:
         fig, axs = plt.subplots(1, 4)

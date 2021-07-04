@@ -7,7 +7,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
-from skimage import exposure, io
+from skimage import exposure, io, img_as_float
 from tensorflow import keras
 
 
@@ -94,7 +94,7 @@ class ProbaDirectoryScanner:
         ret = []
         hrs = sorted(scenedir.glob('HR*.png'))[:self._limit_per_scene]
         lrs = sorted(scenedir.glob('LR*.png'))[:self._limit_per_scene]
-        lr_masks = sorted(scenedir.glob('QM*.png'))[:self._limit_per_scene]
+        lr_masks = sorted(scenedir.glob('QR*.png'))[:self._limit_per_scene]
 
         for sample_path in zip(hrs, lrs, lr_masks):
             ret.append(sample_path)
@@ -226,7 +226,7 @@ class ProbaDataGenerator(keras.utils.Sequence):
     def _load_sample(sample_paths: SamplePaths):
         x = load_proba_img_as_array(sample_paths[SampleEl.HR])
         y = load_proba_img_as_array(sample_paths[SampleEl.LR])
-        y_masks = load_proba_img_as_array(sample_paths[SampleEl.LR_MASK])
+        y_masks = load_proba_mask_as_array(sample_paths[SampleEl.LR_MASK])
         return x, y, y_masks
 
 
@@ -236,6 +236,11 @@ def load_proba_img_as_array(path: Path) -> np.ndarray:
     img = exposure.rescale_intensity(
         img, in_range='uint14', out_range=(0.0, 1.0))
     return img
+
+
+def load_proba_mask_as_array(path: Path) -> np.ndarray:
+    img = np.expand_dims(io.imread(path), axis=2)
+    return img_as_float(img)
 
 
 def show_demo_sample():
