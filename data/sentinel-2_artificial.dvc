@@ -1,0 +1,5 @@
+outs:
+- md5: 2a96d4b80247c30432af0d954680ee66.dir
+  size: 8105531011
+  nfiles: 468925
+  path: sentinel-2_artificial
