@@ -64,9 +64,9 @@ class ProbaDirectoryScanner:
         msg = (f'Proba scanner for directory: {self._path.absolute()}\n'
                f'Found: {len(self._paths)} samples.\n')
         if self._split_slices is not None:
-            msg += 'Has slices:\n'
+            msg += 'Has slices:'
             for split_name in self._split_slices:
-                msg += (f'{split_name}: {len(self._split_slices[split_name])} '
+                msg += (f'\n\t{split_name}: {len(self._split_slices[split_name])} '
                         'samples.')
         return msg
 

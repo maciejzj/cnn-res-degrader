@@ -7,9 +7,15 @@ from skimage import metrics
 from tensorflow import keras
 
 from cnn_res_degrader.utils import enable_gpu_if_possible
-from cnn_res_degrader.test import make_params, make_test_data, compare
+from cnn_res_degrader.test import compare, make_test_data
+from cnn_res_degrader.train import make_params, make_training_data
 from cnn_res_degrader.models import make_model, Models
-from cnn_res_degrader.data_loading import ProbaDataGenerator
+from cnn_res_degrader.data_loading import (
+    Dataset,
+    ProbaDataGenerator,
+    ProbaDirectoryScanner,
+    ProbaImagePreprocessor,
+    Subset)
 
 
 def find_best_weights(model: keras.Model,
@@ -33,7 +39,9 @@ def find_best_weights(model: keras.Model,
         if ssim_score > best_ssim:
             best_ssim = ssim_score
             best_weights_file_path = weights_file_path
-            print(f'Found new best SSIM: {best_ssim}')
+            print(f'Found new best SSIM: {best_ssim}.')
+        else:
+            print(f'SSIM: {ssim_score} not better than best: {best_ssim}.')
 
         print()
 
@@ -43,10 +51,25 @@ def find_best_weights(model: keras.Model,
 def find_best_gan(weights_dir_path: Path):
     params = make_params(Path('params.yaml'), Models.GAN)
 
+    _, val_ds = make_training_data(
+        params['load']['dataset'],
+        params['load']['input_shape'],
+        params['load']['batch_size'],
+        params['load']['validation_split'],
+        {'equalize_hist': False, 'artificial_lr': False},
+        params['load']['limit_per_scene'])
+
     test_ds = make_test_data(
         params['load']['dataset'],
         params['load']['input_shape'],
         params['load']['batch_size'])
+
+    val_ds = make_validation_data(
+        params['load']['dataset'],
+        params['load']['input_shape'],
+        params['load']['batch_size'],
+        params['load']['validation_split'],
+        params['load']['limit_per_scene'])
 
     model = make_model(
         Models.GAN,
@@ -54,11 +77,34 @@ def find_best_gan(weights_dir_path: Path):
         use_lr_masks=False)
 
     best_ssim, best_weights_file_path = find_best_weights(
-        model, weights_dir_path, test_ds)
+        model, weights_dir_path, val_ds)
 
     print(
         f'Best SSIM: {best_ssim}, for weights file: {best_weights_file_path}.')
 
+
+def make_validation_data(
+        dataset: Dataset,
+        input_shape: Tuple[int, int, int],
+        batch_size: int,
+        validation_split: float,
+        limit_per_scene: int) -> ProbaDataGenerator:
+
+    dir_scanner = ProbaDirectoryScanner(
+        Path('data/proba-v_registered'),
+        dataset=dataset,
+        subset=Subset.TRAIN,
+        splits={'train': validation_split, 'val': 1.0 - validation_split},
+        limit_per_scene=limit_per_scene)
+
+    val_ds = ProbaDataGenerator(
+        dir_scanner.get_split('val'),
+        hr_shape=input_shape,
+        batch_size=batch_size,
+        shuffle=False,
+        preprocessor=ProbaImagePreprocessor())
+
+    return val_ds
 
 def main():
     enable_gpu_if_possible()
