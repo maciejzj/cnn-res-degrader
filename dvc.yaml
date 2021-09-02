@@ -35,7 +35,7 @@ stages:
 
   train_gan:
     cmd:
-      - rm -rf data/models/AUTOENCODER-dvc
+      - rm -rf data/models/GAN-dvc
       - python -m cnn_res_degrader.train -g dvc
     params:
       - GAN

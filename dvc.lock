@@ -124,7 +124,7 @@ stages:
       nfiles: 50
   train_gan:
     cmd:
-    - rm -rf data/models/AUTOENCODER-dvc
+    - rm -rf data/models/GAN-dvc
     - python -m cnn_res_degrader.train -g dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
