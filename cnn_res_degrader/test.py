@@ -34,7 +34,7 @@ def make_test_data(dataset: Dataset,
                    input_shape: Tuple[int, int, int],
                    batch_size: int) -> ProbaDataGenerator:
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-v_registered_a'),
         dataset=dataset,
         shuffle=False,
         subset=Subset.TEST)
@@ -54,7 +54,7 @@ def make_test_data(dataset: Dataset,
 def make_artificial_datasets(
         load_params: Dict[str, Any]) -> List[SampleTransformation]:
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-v_registered_a'),
         dataset=load_params['dataset'],
         shuffle=False,
         subset=Subset.TEST)

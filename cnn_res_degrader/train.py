@@ -133,7 +133,7 @@ def make_training_data(
         limit_per_scene: int) -> Tuple[ProbaDataGenerator, ProbaDataGenerator]:
 
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-v_registered_a'),
         dataset=dataset,
         subset=Subset.TRAIN,
         splits={'train': validation_split, 'val': 1.0 - validation_split},

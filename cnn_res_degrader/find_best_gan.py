@@ -91,7 +91,7 @@ def make_validation_data(
         limit_per_scene: int) -> ProbaDataGenerator:
 
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-proba-v_registered_a'),
         dataset=dataset,
         subset=Subset.TRAIN,
         splits={'train': validation_split, 'val': 1.0 - validation_split},

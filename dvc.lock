@@ -21,8 +21,8 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 93de60fcaed1edef4276671acc978894
+      size: 7721
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -58,9 +58,9 @@ stages:
               preview: true
     outs:
     - path: data/models/SIMPLE_CONV-dvc
-      md5: ac75406e8e2721aa5c62e9e5085093c4.dir
-      size: 24060892
-      nfiles: 71
+      md5: 1a8d4f479160313c749a080c5aae2859.dir
+      size: 13622342
+      nfiles: 44
   train_autoencoder:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
@@ -82,8 +82,8 @@ stages:
       md5: 4b9831e5d7ea8f5084fd98bcb5f23574
       size: 1481
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 93de60fcaed1edef4276671acc978894
+      size: 7721
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -119,9 +119,9 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: 8ba0caa2c7f47391282290bbd0f3df91.dir
-      size: 18571779
-      nfiles: 50
+      md5: 6b7f7a6ac60ea75185dd3df5a64679e9.dir
+      size: 28420331
+      nfiles: 74
   train_gan:
     cmd:
     - rm -rf data/models/GAN-dvc
@@ -140,8 +140,8 @@ stages:
       md5: a130df9f38e78cad0e0ab2250f139b3f
       size: 4599
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 93de60fcaed1edef4276671acc978894
+      size: 7721
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -179,6 +179,6 @@ stages:
               preview: true
     outs:
     - path: data/models/GAN-dvc
-      md5: 6310987f56e8f99fb762e99ec3a9ad59.dir
-      size: 84024143
+      md5: d2f64c66c4ea1eadd2387564c1563b1d.dir
+      size: 85356379
       nfiles: 210
