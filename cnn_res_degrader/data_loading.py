@@ -119,8 +119,9 @@ class ProbaDirectoryScanner:
 
 class ProbaHistEqualizer:
     def __call__(self, sample: Sample) -> Sample:
-        new_hr = exposure.equalize_hist(sample[SampleEl.HR])
-        new_lr = exposure.equalize_hist(sample[SampleEl.LR])
+        new_hr = sample[SampleEl.HR]
+        new_lr = sample[SampleEl.LR]
+        new_hr = exposure.match_histograms(new_hr, new_lr)
         return new_hr, new_lr, sample[SampleEl.LR_MASK]
 
 
