@@ -22,6 +22,14 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
                                   registered_proba_path: Path,
                                   output_suffix: str,
                                   add_noise: bool):
+    '''
+    To save proessing time this uses two proba datasets. One is the
+    standard ProbaV with single HR per scene and mulitple LRs. The
+    registered ProbaV includes muliplied HRs registered to existing LRs
+    (these are expected to be trimmed with border of 3 and 1).
+    The multiplied and registered HRs are used for shrinking and LRs
+    creation. The output HR is copied from the 'orignial' Proba.
+    '''
     progress_iterator = 0
 
     if add_noise:
