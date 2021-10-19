@@ -1,13 +1,12 @@
 import argparse
-import shutil
 import sys
 import yaml
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict
 from PIL import Image
 
 import numpy as np
-from skimage import exposure, io, util, transform
+from skimage import exposure, io
 from matplotlib import pyplot as plt
 
 from cnn_res_degrader.models import make_model, Models
@@ -24,7 +23,7 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
                                   output_suffix: str,
                                   add_noise: bool):
     progress_iterator = 0
-    
+
     if add_noise:
         output_suffix += '_n'
 
@@ -35,8 +34,10 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
             'proba-v',
             'proba-v_' + output_suffix))
         new_scene_dir.mkdir(parents=True, exist_ok=True)
-        ### dodaj cropa!
-        shutil.copy(next(unreg_scene_dir_path.glob('hr.png')), new_scene_dir)
+        hr_org = load_proba_img_as_array(next(
+            unreg_scene_dir_path.glob('hr.png')))
+        hr_cropped = crop_border(hr_org, 3)
+        save_proba_img(new_scene_dir/'hr.png', hr_cropped)
 
         for reg_hr_path in reg_scene_dir_path.glob('HR*.png'):
             reg_hr_img = load_proba_img_as_array(reg_hr_path)
@@ -70,7 +71,7 @@ def demo_export(transformation: Callable, hr_path: Path, add_noise: bool):
     hr_img = load_proba_img_as_array(hr_path)
     if add_noise:
         hr_img += np.random.normal(0.0, 0.015, hr_img.shape)
-      
+
     lr_img = load_proba_img_as_array(str(hr_path).replace('HR', 'LR'))
     lr_img_deg = np.array(transformation(img_as_batch(hr_img))[0])
     make_comparison_fig(hr_img, lr_img, lr_img_deg, add_resized_lr=True)
@@ -90,6 +91,12 @@ def make_params(params_path: Path, model_type: Models) -> Dict[str, Any]:
     return params
 
 
+def model_transform_to_lr_bicubic(img):
+    squeezed = np.squeeze(img[0])
+    lr = np.array(Image.fromarray(squeezed).resize((126, 126), Image.BICUBIC))
+    return np.expand_dims(lr, axis=0)
+
+
 def main():
     enable_gpu_if_possible()
 
@@ -102,7 +109,6 @@ def main():
                                  help='Export using autoencoder net.')
     model_selection.add_argument('-g', '--gan', action='store_true',
                                  help='Export using gan net.')
-    
 
     parser.add_argument('-n', '--noise', action='store_true',
                         help='Add noise to HR before augmentation.')
@@ -124,13 +130,13 @@ def main():
     add_noise = args.noise
 
     if args.weights_path != '':
-      model = make_model(
-          model_type,
-          params['load']['input_shape'],
-          use_lr_masks=False)
-      model.load_weights(args.weights_path)
+        model = make_model(
+            model_type,
+            params['load']['input_shape'],
+            use_lr_masks=False)
+        model.load_weights(args.weights_path)
     else:
-      model = lambda x: np.expand_dims(np.array(Image.fromarray(np.squeeze(x[0])).resize((126, 126), Image.BICUBIC)), axis=0)
+        model = model_transform_to_lr_bicubic
 
     if args.demo:
         demo_hr_path = Path(
@@ -154,4 +160,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-  
