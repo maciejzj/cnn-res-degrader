@@ -136,6 +136,7 @@ def make_heatmaps(lr_sets: List[np.ndarray], labels: List[str]) -> Dict[str, plt
             x, y, data_range=1., multichannel=True))
     fig = plot_all_vs_all_heatmap(heatmap, labels, 'SSIM (larger is better)')
     figs['ssim'] = fig
+    print(heatmap)
 
     heatmap = make_heatmap_data(
         lr_sets,
