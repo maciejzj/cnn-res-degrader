@@ -57,7 +57,8 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
             lr_dir.mkdir(parents=True, exist_ok=True)
             save_proba_img(lr_dir/lr_file_name, lr_img)
 
-            print('LRs saved:', progress_iterator := progress_iterator + 1)
+            progress_iterator += 1
+            print('LRs saved:', progress_iterator)
             sys.stdout.flush()
 
 
