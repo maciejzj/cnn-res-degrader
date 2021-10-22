@@ -21,7 +21,8 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
                                   unregistered_proba_path: Path,
                                   registered_proba_path: Path,
                                   output_suffix: str,
-                                  add_noise: bool):
+                                  add_noise: bool,
+                                  match_hist: bool):
     '''
     To save proessing time this uses two proba datasets. One is the
     standard ProbaV with single HR per scene and mulitple LRs. The
@@ -51,6 +52,10 @@ def transform_proba_dataset_3xlrs(transformation: Callable,
             reg_hr_img = load_proba_img_as_array(reg_hr_path)
             if add_noise:
                 reg_hr_img += np.random.normal(0.0, 0.015, reg_hr_img.shape)
+            if match_hist:
+                lr_org_path = reg_hr_path.parent/reg_hr_path.name.replace('HR', 'LR')
+                lr_org_img = load_proba_img_as_array(lr_org_path)
+                reg_hr_img = exposure.match_histograms(reg_hr_img, lr_org_img)
             lr_img = transformation(img_as_batch(reg_hr_img))[0]
             lr_file_name = reg_hr_path.name.replace('HR', 'LR')
             lr_dir = new_scene_dir/'lr'
@@ -121,6 +126,8 @@ def main():
 
     parser.add_argument('-n', '--noise', action='store_true',
                         help='Add noise to HR before augmentation.')
+    parser.add_argument('-m', '--match', action='store_true',
+                        help='Match HR hist with real LR before augmentation.')
     parser.add_argument('-d', '--demo', action='store_true',
                         help='Don\'t export dataset, demo inference.')
     parser.add_argument('weights_path')
@@ -137,6 +144,7 @@ def main():
     params = make_params(Path('params.yaml'), model_type)
     weights_path = Path(args.weights_path)
     add_noise = args.noise
+    match_hist = args.match_hist
 
     if args.weights_path != '':
         model = make_model(
@@ -164,7 +172,7 @@ def main():
         else:
             suffix = 'bicubic'
         transform_proba_dataset_3xlrs(
-            model, unregisterd_proba_path, registerd_proba_path, suffix, add_noise)
+            model, unregisterd_proba_path, registerd_proba_path, suffix, add_noise, match_hist)
 
 
 if __name__ == '__main__':
