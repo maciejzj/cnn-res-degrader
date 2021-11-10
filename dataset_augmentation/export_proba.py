@@ -126,7 +126,7 @@ def main():
 
     parser.add_argument('-n', '--noise', action='store_true',
                         help='Add noise to HR before augmentation.')
-    parser.add_argument('-m', '--match', action='store_true',
+    parser.add_argument('-m', '--match_hist', action='store_true',
                         help='Match HR hist with real LR before augmentation.')
     parser.add_argument('-d', '--demo', action='store_true',
                         help='Don\'t export dataset, demo inference.')
