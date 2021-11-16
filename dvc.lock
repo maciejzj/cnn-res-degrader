@@ -6,8 +6,8 @@ stages:
     - python -m cnn_res_degrader.train -s dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: c2cfd2e06e5d9530fe00d11d9681d7bd
-      size: 8771
+      md5: f9ef166c57b61a14f731271a25b4d698
+      size: 8724
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
@@ -67,8 +67,8 @@ stages:
     - python -m cnn_res_degrader.train -a dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: c2cfd2e06e5d9530fe00d11d9681d7bd
-      size: 8771
+      md5: f9ef166c57b61a14f731271a25b4d698
+      size: 8724
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
@@ -128,8 +128,8 @@ stages:
     - python -m cnn_res_degrader.train -g dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: c2cfd2e06e5d9530fe00d11d9681d7bd
-      size: 8771
+      md5: f9ef166c57b61a14f731271a25b4d698
+      size: 8724
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380

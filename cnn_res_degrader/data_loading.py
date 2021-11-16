@@ -133,15 +133,14 @@ class InterpolationMode(IntEnum):
 
 
 class ProbaHrToLrResizer:
-    def __init__(self, interpolation_mode: InterpolationMode,
-                 target_shape: Tuple[int, int, int]):
+    def __init__(self, interpolation_mode: InterpolationMode):
         self._interpolation_mode = interpolation_mode
-        self._target_shape = target_shape
 
     def __call__(self, sample: Sample) -> Sample:
         hr = sample[SampleEl.HR]
+        target_shape = hr_shape_to_lr_shape(hr.shape)
         resized = np.array(Image.fromarray(np.squeeze(hr, axis=2)).resize(
-            self._target_shape[:-1],
+            target_shape[:-1],
             self._interpolation_mode))
         resized = np.expand_dims(resized, axis=2)
         return sample[SampleEl.HR], resized, sample[SampleEl.LR_MASK]
