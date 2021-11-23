@@ -119,9 +119,9 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: 057e4a172c35e3ce19330ebcf207422c.dir
-      size: 190559471
-      nfiles: 28
+      md5: b862c3bff00d82025a060cbbfb4fda2e.dir
+      size: 288021815
+      nfiles: 42
   train_gan:
     cmd:
     - rm -rf data/models/GAN-dvc
