@@ -23,7 +23,7 @@ SIMPLE_CONV:
 
   train:
     lr: 0.0001
-    epochs: 100
+    epochs: 150
     # Supported losses: 'MAE', 'MSE', 'SSIM'
     loss: MSE
     use_lr_masks: true
@@ -58,9 +58,9 @@ AUTOENCODER:
 
   train:
     lr: 0.0001
-    epochs: 100
+    epochs: 150
     # Supported losses: 'MAE', 'MSE', 'SSIM'
-    loss: SSIM
+    loss: MSE
     use_lr_masks: false
 
     callbacks:

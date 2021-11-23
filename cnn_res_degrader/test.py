@@ -59,9 +59,8 @@ def make_artificial_datasets(
         shuffle=False,
         subset=Subset.TEST)
 
-    lr_shape = hr_shape_to_lr_shape(load_params['input_shape'])
-    preps = [ProbaImagePreprocessor(ProbaHrToLrResizer(
-        mode, target_shape=lr_shape)) for mode in InterpolationMode]
+    preps = [ProbaImagePreprocessor(ProbaHrToLrResizer(mode))
+             for mode in InterpolationMode]
     make_artificial_data_gen = partial(
         ProbaDataGenerator,
         dir_scanner.paths,

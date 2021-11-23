@@ -45,7 +45,7 @@ stages:
               interpolation_mode: BICUBIC
           train:
             lr: 0.0001
-            epochs: 100
+            epochs: 150
             loss: MSE
             use_lr_masks: true
             callbacks:
@@ -58,9 +58,9 @@ stages:
               preview: true
     outs:
     - path: data/models/SIMPLE_CONV-dvc
-      md5: de2955fe47ef16035461db1db0571934.dir
-      size: 27918077
-      nfiles: 82
+      md5: 06387cebdfcd347798aeb3cbd282be94.dir
+      size: 44004259
+      nfiles: 124
   train_autoencoder:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
@@ -106,8 +106,8 @@ stages:
               interpolation_mode: BICUBIC
           train:
             lr: 0.0001
-            epochs: 100
-            loss: SSIM
+            epochs: 150
+            loss: MSE
             use_lr_masks: false
             callbacks:
               tensorboard: true
@@ -119,9 +119,9 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: 9d1364637305c648f4ddd6ad51244550.dir
-      size: 319647755
-      nfiles: 45
+      md5: 648b1d89fa1fed2fd852241205939349.dir
+      size: 287833948
+      nfiles: 42
   train_gan:
     cmd:
     - rm -rf data/models/GAN-dvc
