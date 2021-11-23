@@ -42,7 +42,7 @@ class Autoencoder(MaskableDegrader):
         self.upconv2a = layers.Conv2D(128, kernel_size=3, padding='same', activation='relu')
         self.upconv2b = layers.Conv2D(128, kernel_size=3, padding='same', activation='relu')
 
-        self.outconv = layers.Conv2D(1, kernel_size=3, padding='same', activation='relu')
+        self.outconv = layers.Conv2D(1, kernel_size=3, padding='same', activation='sigmoid')
 
         self(tf.zeros((1, *input_shape)))
 
