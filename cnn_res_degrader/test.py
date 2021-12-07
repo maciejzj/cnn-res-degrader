@@ -227,10 +227,10 @@ def main():
     model_selection = parser.add_mutually_exclusive_group()
     model_selection.add_argument('-s', '--simple', action='store_true',
                                  help='Train simple conv net.')
-    model_selection.add_argument('-a', '--autoencoder', action='store_true',
-                                 help='Train autoencoder et.')
+    model_selection.add_argument('-a', '--unet', action='store_true',
+                                 help='Train Unet et.')
     model_selection.add_argument('-g', '--gan', action='store_true',
-                                 help='Train gan net.')
+                                 help='Train GAN net.')
 
     parser.add_argument('weights_path')
     parser.add_argument('output_dir')
@@ -241,8 +241,8 @@ def main():
 
     if args.simple:
         test(Models.SIMPLE_CONV, weights_path, output_dir)
-    elif args.autoencoder:
-        test(Models.AUTOENCODER, weights_path, output_dir)
+    elif args.unet:
+        test(Models.UNET, weights_path, output_dir)
     elif args.gan:
         test(Models.GAN, weights_path, output_dir)
 

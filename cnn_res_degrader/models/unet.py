@@ -7,13 +7,13 @@ from tensorflow.keras import layers
 from .maskable_degrader import MaskableDegrader
 
 
-class Autoencoder(MaskableDegrader):
+class Unet(MaskableDegrader):
     def __init__(self,
                  input_shape: Tuple[int, int, int],
-                 name='AutoencoderConv',
+                 name='Unet',
                  use_lr_masks=False):
 
-        super(Autoencoder, self).__init__(name=name)
+        super(Unet, self).__init__(name=name)
         self._use_lr_masks = use_lr_masks
         self._input_shape = input_shape
 

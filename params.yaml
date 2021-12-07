@@ -37,7 +37,7 @@ SIMPLE_CONV:
       stopping_patience: 5
       preview: true
 
-AUTOENCODER:
+UNET:
   load:
     # Supported datasets: 'NIR', 'RED'
     dataset: NIR

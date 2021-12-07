@@ -12,8 +12,8 @@ stages:
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
     - path: cnn_res_degrader/models/common.py
-      md5: 810fb88f6c63d9c5f797439f18ecb223
-      size: 572
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
     - path: cnn_res_degrader/models/maskable_degrader.py
       md5: 4b9831e5d7ea8f5084fd98bcb5f23574
       size: 1481
@@ -21,8 +21,8 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 628f8fafb86e4d9bddce3a06250be0e9
-      size: 7714
+      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -134,14 +134,14 @@ stages:
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
     - path: cnn_res_degrader/models/common.py
-      md5: 810fb88f6c63d9c5f797439f18ecb223
-      size: 572
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
     - path: cnn_res_degrader/models/gan.py
       md5: 32453f9cf638892ae1d7da32c9d1974c
       size: 4597
     - path: cnn_res_degrader/train.py
-      md5: 628f8fafb86e4d9bddce3a06250be0e9
-      size: 7714
+      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -182,3 +182,64 @@ stages:
       md5: be89992e3e87f18a193515db6e2dbbdb.dir
       size: 85447026
       nfiles: 210
+  train_unet:
+    cmd:
+    - rm -rf data/models/UNET-dvc
+    - python -m cnn_res_degrader.train -a dvc
+    deps:
+    - path: cnn_res_degrader/data_loading.py
+      md5: 05f3762ea06d1528d9697c16e7002da7
+      size: 8720
+    - path: cnn_res_degrader/metrics.py
+      md5: ea7e6b5316589d9f9d44ba089743a676
+      size: 380
+    - path: cnn_res_degrader/models/common.py
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
+    - path: cnn_res_degrader/models/maskable_degrader.py
+      md5: 4b9831e5d7ea8f5084fd98bcb5f23574
+      size: 1481
+    - path: cnn_res_degrader/models/unet.py
+      md5: 488b19d5f82baffe3c5fdebcdbe1a51a
+      size: 2925
+    - path: cnn_res_degrader/train.py
+      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      size: 7687
+    - path: data/proba-v_registered
+      md5: c2484f769d289457484d355c872e102c.dir
+      size: 2387126778
+      nfiles: 31320
+    params:
+      params.yaml:
+        UNET:
+          load:
+            dataset: NIR
+            input_shape:
+            - 378
+            - 378
+            - 1
+            limit_per_scene:
+            batch_size: 8
+            validation_split: 0.8
+            preprocess:
+              match_hist: true
+              artificial_lr: false
+              interpolation_mode: BICUBIC
+          train:
+            lr: 0.0001
+            epochs: 100
+            loss: SSIM
+            use_lr_masks: false
+            callbacks:
+              tensorboard: true
+              modelcheckpoint: true
+              save_best_only: true
+              earlystopping: true
+              stopping_delta: 0.0
+              stopping_patience: 5
+              preview: true
+    outs:
+    - path: data/models/UNET-dvc
+      md5: 149e20237086fc3a0f27b63df1cc380d.dir
+      size: 288021815
+      nfiles: 42

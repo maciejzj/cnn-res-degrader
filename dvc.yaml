@@ -16,22 +16,22 @@ stages:
     outs:
       - data/models/SIMPLE_CONV-dvc
 
-  train_autoencoder:
+  train_unet:
     cmd:
-      - rm -rf data/models/AUTOENCODER-dvc
+      - rm -rf data/models/UNET-dvc
       - python -m cnn_res_degrader.train -a dvc
     params:
-      - AUTOENCODER
+      - UNET
     deps:
       - data/proba-v_registered
       - cnn_res_degrader/data_loading.py
       - cnn_res_degrader/train.py
       - cnn_res_degrader/metrics.py
-      - cnn_res_degrader/models/autoencoder.py
+      - cnn_res_degrader/models/unet.py
       - cnn_res_degrader/models/maskable_degrader.py
       - cnn_res_degrader/models/common.py
     outs:
-      - data/models/AUTOENCODER-dvc
+      - data/models/UNET-dvc
 
   train_gan:
     cmd:

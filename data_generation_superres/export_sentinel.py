@@ -118,10 +118,10 @@ def main():
     model_selection = parser.add_mutually_exclusive_group()
     model_selection.add_argument('-s', '--simple', action='store_true',
                                  help='Export using simple conv net.')
-    model_selection.add_argument('-a', '--autoencoder', action='store_true',
-                                 help='Export using autoencoder net.')
+    model_selection.add_argument('-a', '--unet', action='store_true',
+                                 help='Export using Unet net.')
     model_selection.add_argument('-g', '--gan', action='store_true',
-                                 help='Export using gan net.')
+                                 help='Export using GAN net.')
 
     parser.add_argument('-r', '--random_translations', action='store_true',
                         help='Generate random LR translations instead of using'
@@ -134,8 +134,8 @@ def main():
 
     if args.simple:
         model_type = Models.SIMPLE_CONV
-    elif args.autoencoder:
-        model_type = Models.AUTOENCODER
+    elif args.unet:
+        model_type = Models.UNET
     elif args.gan:
         model_type = Models.GAN
 

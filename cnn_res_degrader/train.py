@@ -204,18 +204,18 @@ def main():
 
     parser.add_argument('-s', '--simple', action='store_true',
                         help='Train simple conv net.')
-    parser.add_argument('-a', '--autoencoder', action='store_true',
-                        help='Train autoencoder et.')
+    parser.add_argument('-a', '--unet', action='store_true',
+                        help='Train Unet net.')
     parser.add_argument('-g', '--gan', action='store_true',
-                        help='Train gan net.')
+                        help='Train GAN net.')
     parser.add_argument('training_name')
 
     args = parser.parse_args()
 
     if args.simple:
         train(Models.SIMPLE_CONV, args.training_name)
-    if args.autoencoder:
-        train(Models.AUTOENCODER, args.training_name)
+    if args.unet:
+        train(Models.UNET, args.training_name)
     if args.gan:
         train(Models.GAN, args.training_name)
 
