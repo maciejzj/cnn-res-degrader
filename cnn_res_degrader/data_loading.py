@@ -117,7 +117,7 @@ class ProbaDirectoryScanner:
         return ret
 
 
-class ProbaHistEqualizer:
+class ProbaHistMatcher:
     def __call__(self, sample: Sample) -> Sample:
         new_hr = sample[SampleEl.HR]
         new_lr = sample[SampleEl.LR]
@@ -251,7 +251,7 @@ def show_demo_sample():
         splits={'train': 0.7, 'val': 0.3},
         limit_per_scene=3)
     preprocessor = ProbaImagePreprocessor(
-        ProbaHistEqualizer())
+        ProbaHistMatcher())
     train_gen = ProbaDataGenerator(
         dir_scanner.get_split('train'), preprocessor)
 

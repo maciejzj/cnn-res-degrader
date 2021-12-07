@@ -19,7 +19,7 @@ from cnn_res_degrader.data_loading import (
     ProbaDataGenerator,
     ProbaDirectoryScanner,
     ProbaImagePreprocessor,
-    ProbaHistEqualizer,
+    ProbaHistMatcher,
     ProbaHrToLrResizer)
 from cnn_res_degrader.metrics import make_ssim_metric
 from cnn_res_degrader.models import make_model, Models, Gan
@@ -114,8 +114,8 @@ class Training:
 def make_preprocessor(prep_params: Dict[str, Any]) -> ProbaImagePreprocessor:
     transformations = []
 
-    if prep_params['equalize_hist']:
-        transformations.append(ProbaHistEqualizer())
+    if prep_params['match_hist']:
+        transformations.append(ProbaHistMatcher())
 
     if prep_params['artificial_lr']:
         transformations.append(ProbaHrToLrResizer(
