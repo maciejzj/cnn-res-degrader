@@ -30,7 +30,7 @@ with the `dvc pull` command.
 
 The models are automatically managed depending on changes in source code and
 configuration in `params.yaml`. The training pipeline is defined in `dvc.yaml`.
-Experiment reproduction is done with the `dvc repro` command. The pre-trained
+Experiment reproduction is done with the `dvc repro` command. Pre-trained
 models created with the current state of the `master` branch can be pulled from
 the DVC remote.  There are three model architectures for degradation: a simple
 fully convolutional network, a U-Net, and a GAN network.
