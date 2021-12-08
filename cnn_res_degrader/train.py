@@ -204,7 +204,7 @@ def main():
 
     parser.add_argument('-s', '--simple', action='store_true',
                         help='Train simple conv net.')
-    parser.add_argument('-a', '--unet', action='store_true',
+    parser.add_argument('-u', '--unet', action='store_true',
                         help='Train Unet net.')
     parser.add_argument('-g', '--gan', action='store_true',
                         help='Train GAN net.')

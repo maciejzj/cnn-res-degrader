@@ -119,7 +119,7 @@ def main():
     model_selection = parser.add_mutually_exclusive_group()
     model_selection.add_argument('-s', '--simple', action='store_true',
                                  help='Export using simple conv net.')
-    model_selection.add_argument('-a', '--unet', action='store_true',
+    model_selection.add_argument('-u', '--unet', action='store_true',
                                  help='Export using Unet net.')
     model_selection.add_argument('-g', '--gan', action='store_true',
                                  help='Export using GAN net.')

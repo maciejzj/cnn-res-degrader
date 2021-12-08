@@ -21,7 +21,7 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
       size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
@@ -140,7 +140,7 @@ stages:
       md5: 32453f9cf638892ae1d7da32c9d1974c
       size: 4597
     - path: cnn_res_degrader/train.py
-      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
       size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
@@ -203,7 +203,7 @@ stages:
       md5: 488b19d5f82baffe3c5fdebcdbe1a51a
       size: 2925
     - path: cnn_res_degrader/train.py
-      md5: 9e8aedef875fb1c3d112b5e1f070b507
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
       size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
