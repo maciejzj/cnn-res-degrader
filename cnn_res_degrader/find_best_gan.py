@@ -106,6 +106,7 @@ def make_validation_data(
 
     return val_ds
 
+
 def main():
     enable_gpu_if_possible()
 
