@@ -6,14 +6,14 @@ stages:
     - python -m cnn_res_degrader.train -s dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: e4dafa89521ad145f813e49b0aafd985
-      size: 8760
+      md5: 05f3762ea06d1528d9697c16e7002da7
+      size: 8720
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
     - path: cnn_res_degrader/models/common.py
-      md5: 810fb88f6c63d9c5f797439f18ecb223
-      size: 572
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
     - path: cnn_res_degrader/models/maskable_degrader.py
       md5: 4b9831e5d7ea8f5084fd98bcb5f23574
       size: 1481
@@ -21,8 +21,8 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
+      size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -40,7 +40,7 @@ stages:
             batch_size: 8
             validation_split: 0.8
             preprocess:
-              equalize_hist: true
+              match_hist: true
               artificial_lr: false
               interpolation_mode: BICUBIC
           train:
@@ -58,23 +58,23 @@ stages:
               preview: true
     outs:
     - path: data/models/SIMPLE_CONV-dvc
-      md5: ac75406e8e2721aa5c62e9e5085093c4.dir
-      size: 24060892
-      nfiles: 71
+      md5: de2955fe47ef16035461db1db0571934.dir
+      size: 27918077
+      nfiles: 82
   train_autoencoder:
     cmd:
     - rm -rf data/models/AUTOENCODER-dvc
     - python -m cnn_res_degrader.train -a dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: e4dafa89521ad145f813e49b0aafd985
-      size: 8760
+      md5: 05f3762ea06d1528d9697c16e7002da7
+      size: 8720
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
     - path: cnn_res_degrader/models/autoencoder.py
-      md5: 00a0edfd518fb289d7a4824486c50bb2
-      size: 1381
+      md5: a932cfa76e311f906c531136b48bade8
+      size: 2950
     - path: cnn_res_degrader/models/common.py
       md5: 810fb88f6c63d9c5f797439f18ecb223
       size: 572
@@ -82,8 +82,8 @@ stages:
       md5: 4b9831e5d7ea8f5084fd98bcb5f23574
       size: 1481
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 628f8fafb86e4d9bddce3a06250be0e9
+      size: 7714
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -101,14 +101,14 @@ stages:
             batch_size: 8
             validation_split: 0.8
             preprocess:
-              equalize_hist: true
+              match_hist: true
               artificial_lr: false
               interpolation_mode: BICUBIC
           train:
             lr: 0.0001
             epochs: 100
-            loss: MSE
-            use_lr_masks: true
+            loss: SSIM
+            use_lr_masks: false
             callbacks:
               tensorboard: true
               modelcheckpoint: true
@@ -119,29 +119,29 @@ stages:
               preview: true
     outs:
     - path: data/models/AUTOENCODER-dvc
-      md5: 8ba0caa2c7f47391282290bbd0f3df91.dir
-      size: 18571779
-      nfiles: 50
+      md5: b862c3bff00d82025a060cbbfb4fda2e.dir
+      size: 288021815
+      nfiles: 42
   train_gan:
     cmd:
     - rm -rf data/models/GAN-dvc
     - python -m cnn_res_degrader.train -g dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
-      md5: e4dafa89521ad145f813e49b0aafd985
-      size: 8760
+      md5: 05f3762ea06d1528d9697c16e7002da7
+      size: 8720
     - path: cnn_res_degrader/metrics.py
       md5: ea7e6b5316589d9f9d44ba089743a676
       size: 380
     - path: cnn_res_degrader/models/common.py
-      md5: 810fb88f6c63d9c5f797439f18ecb223
-      size: 572
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
     - path: cnn_res_degrader/models/gan.py
-      md5: a130df9f38e78cad0e0ab2250f139b3f
-      size: 4599
+      md5: 32453f9cf638892ae1d7da32c9d1974c
+      size: 4597
     - path: cnn_res_degrader/train.py
-      md5: 79c3970f43dbd2114be44b300b4eceff
-      size: 7719
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
+      size: 7687
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -159,7 +159,7 @@ stages:
             batch_size: 8
             validation_split: 0.8
             preprocess:
-              equalize_hist: true
+              match_hist: true
               artificial_lr: false
               interpolation_mode: BICUBIC
           train:
@@ -179,6 +179,67 @@ stages:
               preview: true
     outs:
     - path: data/models/GAN-dvc
-      md5: 6310987f56e8f99fb762e99ec3a9ad59.dir
-      size: 84024143
+      md5: be89992e3e87f18a193515db6e2dbbdb.dir
+      size: 85447026
       nfiles: 210
+  train_unet:
+    cmd:
+    - rm -rf data/models/UNET-dvc
+    - python -m cnn_res_degrader.train -a dvc
+    deps:
+    - path: cnn_res_degrader/data_loading.py
+      md5: 05f3762ea06d1528d9697c16e7002da7
+      size: 8720
+    - path: cnn_res_degrader/metrics.py
+      md5: ea7e6b5316589d9f9d44ba089743a676
+      size: 380
+    - path: cnn_res_degrader/models/common.py
+      md5: 40e49b195b444bd8027bfa16e1750b90
+      size: 538
+    - path: cnn_res_degrader/models/maskable_degrader.py
+      md5: 4b9831e5d7ea8f5084fd98bcb5f23574
+      size: 1481
+    - path: cnn_res_degrader/models/unet.py
+      md5: 488b19d5f82baffe3c5fdebcdbe1a51a
+      size: 2925
+    - path: cnn_res_degrader/train.py
+      md5: 7117ae9d86296ed72a19c4c263e4bbe2
+      size: 7687
+    - path: data/proba-v_registered
+      md5: c2484f769d289457484d355c872e102c.dir
+      size: 2387126778
+      nfiles: 31320
+    params:
+      params.yaml:
+        UNET:
+          load:
+            dataset: NIR
+            input_shape:
+            - 378
+            - 378
+            - 1
+            limit_per_scene:
+            batch_size: 8
+            validation_split: 0.8
+            preprocess:
+              match_hist: true
+              artificial_lr: false
+              interpolation_mode: BICUBIC
+          train:
+            lr: 0.0001
+            epochs: 100
+            loss: SSIM
+            use_lr_masks: false
+            callbacks:
+              tensorboard: true
+              modelcheckpoint: true
+              save_best_only: true
+              earlystopping: true
+              stopping_delta: 0.0
+              stopping_patience: 5
+              preview: true
+    outs:
+    - path: data/models/UNET-dvc
+      md5: 149e20237086fc3a0f27b63df1cc380d.dir
+      size: 288021815
+      nfiles: 42

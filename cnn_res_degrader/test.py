@@ -34,7 +34,7 @@ def make_test_data(dataset: Dataset,
                    input_shape: Tuple[int, int, int],
                    batch_size: int) -> ProbaDataGenerator:
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-v_registered_a'),
         dataset=dataset,
         shuffle=False,
         subset=Subset.TEST)
@@ -54,14 +54,13 @@ def make_test_data(dataset: Dataset,
 def make_artificial_datasets(
         load_params: Dict[str, Any]) -> List[SampleTransformation]:
     dir_scanner = ProbaDirectoryScanner(
-        Path('data/proba-v_registered'),
+        Path('data/proba-v_registered_a'),
         dataset=load_params['dataset'],
         shuffle=False,
         subset=Subset.TEST)
 
-    lr_shape = hr_shape_to_lr_shape(load_params['input_shape'])
-    preps = [ProbaImagePreprocessor(ProbaHrToLrResizer(
-        mode, target_shape=lr_shape)) for mode in InterpolationMode]
+    preps = [ProbaImagePreprocessor(ProbaHrToLrResizer(mode))
+             for mode in InterpolationMode]
     make_artificial_data_gen = partial(
         ProbaDataGenerator,
         dir_scanner.paths,
@@ -136,6 +135,7 @@ def make_heatmaps(lr_sets: List[np.ndarray], labels: List[str]) -> Dict[str, plt
             x, y, data_range=1., multichannel=True))
     fig = plot_all_vs_all_heatmap(heatmap, labels, 'SSIM (larger is better)')
     figs['ssim'] = fig
+    print(heatmap)
 
     heatmap = make_heatmap_data(
         lr_sets,
@@ -227,10 +227,10 @@ def main():
     model_selection = parser.add_mutually_exclusive_group()
     model_selection.add_argument('-s', '--simple', action='store_true',
                                  help='Train simple conv net.')
-    model_selection.add_argument('-a', '--autoencoder', action='store_true',
-                                 help='Train autoencoder et.')
+    model_selection.add_argument('-u', '--unet', action='store_true',
+                                 help='Train Unet et.')
     model_selection.add_argument('-g', '--gan', action='store_true',
-                                 help='Train gan net.')
+                                 help='Train GAN net.')
 
     parser.add_argument('weights_path')
     parser.add_argument('output_dir')
@@ -241,8 +241,8 @@ def main():
 
     if args.simple:
         test(Models.SIMPLE_CONV, weights_path, output_dir)
-    elif args.autoencoder:
-        test(Models.AUTOENCODER, weights_path, output_dir)
+    elif args.unet:
+        test(Models.UNET, weights_path, output_dir)
     elif args.gan:
         test(Models.GAN, weights_path, output_dir)
 

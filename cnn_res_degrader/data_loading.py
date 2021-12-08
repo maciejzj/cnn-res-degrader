@@ -117,10 +117,11 @@ class ProbaDirectoryScanner:
         return ret
 
 
-class ProbaHistEqualizer:
+class ProbaHistMatcher:
     def __call__(self, sample: Sample) -> Sample:
-        new_hr = exposure.equalize_hist(sample[SampleEl.HR])
-        new_lr = exposure.equalize_hist(sample[SampleEl.LR])
+        new_hr = sample[SampleEl.HR]
+        new_lr = sample[SampleEl.LR]
+        new_hr = exposure.match_histograms(new_hr, new_lr)
         return new_hr, new_lr, sample[SampleEl.LR_MASK]
 
 
@@ -132,15 +133,14 @@ class InterpolationMode(IntEnum):
 
 
 class ProbaHrToLrResizer:
-    def __init__(self, interpolation_mode: InterpolationMode,
-                 target_shape: Tuple[int, int, int]):
+    def __init__(self, interpolation_mode: InterpolationMode):
         self._interpolation_mode = interpolation_mode
-        self._target_shape = target_shape
 
     def __call__(self, sample: Sample) -> Sample:
         hr = sample[SampleEl.HR]
+        target_shape = hr_shape_to_lr_shape(hr.shape)
         resized = np.array(Image.fromarray(np.squeeze(hr, axis=2)).resize(
-            self._target_shape[:-1],
+            target_shape[:-1],
             self._interpolation_mode))
         resized = np.expand_dims(resized, axis=2)
         return sample[SampleEl.HR], resized, sample[SampleEl.LR_MASK]
@@ -251,7 +251,7 @@ def show_demo_sample():
         splits={'train': 0.7, 'val': 0.3},
         limit_per_scene=3)
     preprocessor = ProbaImagePreprocessor(
-        ProbaHistEqualizer())
+        ProbaHistMatcher())
     train_gen = ProbaDataGenerator(
         dir_scanner.get_split('train'), preprocessor)
 

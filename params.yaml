@@ -16,7 +16,7 @@ SIMPLE_CONV:
     batch_size: 8
     validation_split: 0.8
     preprocess:
-      equalize_hist: true
+      match_hist: true
       artificial_lr: false
       # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
       interpolation_mode: BICUBIC
@@ -37,7 +37,7 @@ SIMPLE_CONV:
       stopping_patience: 5
       preview: true
 
-AUTOENCODER:
+UNET:
   load:
     # Supported datasets: 'NIR', 'RED'
     dataset: NIR
@@ -51,7 +51,7 @@ AUTOENCODER:
     batch_size: 8
     validation_split: 0.8
     preprocess:
-      equalize_hist: true
+      match_hist: true
       artificial_lr: false
       # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
       interpolation_mode: BICUBIC
@@ -60,8 +60,8 @@ AUTOENCODER:
     lr: 0.0001
     epochs: 100
     # Supported losses: 'MAE', 'MSE', 'SSIM'
-    loss: MSE
-    use_lr_masks: true
+    loss: SSIM
+    use_lr_masks: false
 
     callbacks:
       tensorboard: true
@@ -86,7 +86,7 @@ GAN:
     batch_size: 8
     validation_split: 0.8
     preprocess:
-      equalize_hist: true
+      match_hist: true
       artificial_lr: false
       # Supported modes: 'NEAREST', 'BILINEAR', 'BICUBIC', 'LANCZOS'
       interpolation_mode: BICUBIC

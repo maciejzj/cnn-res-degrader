@@ -9,7 +9,7 @@ from cnn_res_degrader.data_loading import (
     Dataset,
     InterpolationMode,
     ProbaImagePreprocessor,
-    ProbaHistEqualizer,
+    ProbaHistMatcher,
     ProbaHrToLrResizer,
     hr_shape_to_lr_shape)
 from cnn_res_degrader.metrics import make_ssim_metric
