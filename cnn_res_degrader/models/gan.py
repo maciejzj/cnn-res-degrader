@@ -12,7 +12,7 @@ from cnn_res_degrader.data_loading import (
     ProbaHistMatcher,
     ProbaHrToLrResizer,
     hr_shape_to_lr_shape)
-from cnn_res_degrader.metrics import make_ssim_metric
+from cnn_res_degrader.metrics import make_ssim_loss
 
 from matplotlib import pyplot as plt
 
@@ -93,7 +93,7 @@ class Gan(keras.Model):
         self.d_optimizer = d_optimizer
         self.g_optimizer = g_optimizer
         self.loss_fn = loss_fn
-        self.val_loss_fn = make_ssim_metric()
+        self.val_loss_fn = make_ssim_loss()
 
     def train_step(self, data):
         x, y, y_mask = data

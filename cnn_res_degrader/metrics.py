@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def make_psnr_metric(max_value=1.0):
+def make_psnr_loss(max_value=1.0):
 
     def psnr(y_true, y_pred):
         return 1.0 - tf.reduce_mean(
@@ -10,7 +10,7 @@ def make_psnr_metric(max_value=1.0):
     return psnr
 
 
-def make_ssim_metric(max_value=1.0):
+def make_ssim_loss(max_value=1.0):
 
     def ssim(y_true, y_pred):
         return 1.0 - tf.reduce_mean(

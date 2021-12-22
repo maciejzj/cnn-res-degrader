@@ -21,7 +21,7 @@ from cnn_res_degrader.data_loading import (
     ProbaImagePreprocessor,
     ProbaHistMatcher,
     ProbaHrToLrResizer)
-from cnn_res_degrader.metrics import make_ssim_metric
+from cnn_res_degrader.metrics import make_ssim_loss
 from cnn_res_degrader.models import make_model, Models, Gan
 from cnn_res_degrader.utils import enable_gpu_if_possible
 from cnn_res_degrader.callbacks import InferenceImagePreview
@@ -34,7 +34,7 @@ TRAIN_LOSSES = {
     'BINARY_CROSSENTROPY': keras.losses.BinaryCrossentropy(),
     'MAE': keras.losses.MeanAbsoluteError(),
     'MSE': keras.losses.MeanSquaredError(),
-    'SSIM': make_ssim_metric()}
+    'SSIM': make_ssim_loss()}
 
 
 class Training:
