@@ -9,8 +9,8 @@ stages:
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: ea7e6b5316589d9f9d44ba089743a676
-      size: 380
+      md5: 56638df90646994bcab8507acaad33e0
+      size: 487
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538
@@ -21,8 +21,8 @@ stages:
       md5: c3306dc639e7ca1fc4bf7f86c965357e
       size: 1088
     - path: cnn_res_degrader/train.py
-      md5: 7117ae9d86296ed72a19c4c263e4bbe2
-      size: 7687
+      md5: cee583321eb994828ec862b1ff4a0820
+      size: 7999
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -131,17 +131,17 @@ stages:
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: ea7e6b5316589d9f9d44ba089743a676
-      size: 380
+      md5: 56638df90646994bcab8507acaad33e0
+      size: 487
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538
     - path: cnn_res_degrader/models/gan.py
-      md5: 32453f9cf638892ae1d7da32c9d1974c
-      size: 4597
+      md5: 91b7cd01776cdb59271d8af05c619719
+      size: 4593
     - path: cnn_res_degrader/train.py
-      md5: 7117ae9d86296ed72a19c4c263e4bbe2
-      size: 7687
+      md5: cee583321eb994828ec862b1ff4a0820
+      size: 7999
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778
@@ -191,8 +191,8 @@ stages:
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: ea7e6b5316589d9f9d44ba089743a676
-      size: 380
+      md5: 56638df90646994bcab8507acaad33e0
+      size: 487
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538
@@ -203,8 +203,8 @@ stages:
       md5: 488b19d5f82baffe3c5fdebcdbe1a51a
       size: 2925
     - path: cnn_res_degrader/train.py
-      md5: 7117ae9d86296ed72a19c4c263e4bbe2
-      size: 7687
+      md5: cee583321eb994828ec862b1ff4a0820
+      size: 7999
     - path: data/proba-v_registered
       md5: c2484f769d289457484d355c872e102c.dir
       size: 2387126778

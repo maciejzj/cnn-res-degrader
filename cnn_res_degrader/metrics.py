@@ -17,3 +17,11 @@ def make_ssim_loss(max_value=1.0):
             tf.image.ssim(y_true, y_pred, max_value))
 
     return ssim
+
+
+def make_lpips_loss():
+
+    def lpips(y_true, y_pred):
+        raise NotImplementedError()
+
+    return lpips
