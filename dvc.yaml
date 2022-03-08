@@ -19,7 +19,7 @@ stages:
   train_unet:
     cmd:
       - rm -rf data/models/UNET-dvc
-      - python -m cnn_res_degrader.train -a dvc
+      - python -m cnn_res_degrader.train -u dvc
     params:
       - UNET
     deps:

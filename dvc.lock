@@ -9,8 +9,8 @@ stages:
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: 56638df90646994bcab8507acaad33e0
-      size: 487
+      md5: cb69d6684a4e7385492fc1fbc735d81b
+      size: 1082
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538
@@ -131,8 +131,8 @@ stages:
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: 56638df90646994bcab8507acaad33e0
-      size: 487
+      md5: cb69d6684a4e7385492fc1fbc735d81b
+      size: 1082
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538
@@ -185,14 +185,14 @@ stages:
   train_unet:
     cmd:
     - rm -rf data/models/UNET-dvc
-    - python -m cnn_res_degrader.train -a dvc
+    - python -m cnn_res_degrader.train -u dvc
     deps:
     - path: cnn_res_degrader/data_loading.py
       md5: 05f3762ea06d1528d9697c16e7002da7
       size: 8720
     - path: cnn_res_degrader/metrics.py
-      md5: 56638df90646994bcab8507acaad33e0
-      size: 487
+      md5: cb69d6684a4e7385492fc1fbc735d81b
+      size: 1082
     - path: cnn_res_degrader/models/common.py
       md5: 40e49b195b444bd8027bfa16e1750b90
       size: 538

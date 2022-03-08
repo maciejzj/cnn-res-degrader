@@ -1,6 +1,6 @@
 # WARNING: Some options are mutually exclusive.
 # List of incompatible options:
-# 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: SSIM'.
+# 'metrics.use_lr_masks: true' and metrics: 'metrics.loss: SSIM'/'metrics.loss: LPIPS'.
 
 SIMPLE_CONV:
   load:
@@ -24,7 +24,7 @@ SIMPLE_CONV:
   train:
     lr: 0.0001
     epochs: 100
-    # Supported losses: 'MAE', 'MSE', 'SSIM'
+    # Supported losses: 'MAE', 'MSE', 'SSIM', 'LPIPS'
     loss: MSE
     use_lr_masks: true
   
@@ -59,7 +59,7 @@ UNET:
   train:
     lr: 0.0001
     epochs: 100
-    # Supported losses: 'MAE', 'MSE', 'SSIM'
+    # Supported losses: 'MAE', 'MSE', 'SSIM', 'LPIPS'
     loss: SSIM
     use_lr_masks: false
 
