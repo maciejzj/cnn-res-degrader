@@ -21,7 +21,7 @@ from cnn_res_degrader.data_loading import (
     ProbaImagePreprocessor,
     ProbaHistMatcher,
     ProbaHrToLrResizer)
-from cnn_res_degrader.metrics import make_ssim_loss
+from cnn_res_degrader.metrics import make_lpips_loss, make_ssim_loss
 from cnn_res_degrader.models import make_model, Models, Gan
 from cnn_res_degrader.utils import enable_gpu_if_possible
 from cnn_res_degrader.callbacks import InferenceImagePreview
@@ -30,11 +30,20 @@ from cnn_res_degrader.callbacks import InferenceImagePreview
 np_config.enable_numpy_behavior()
 
 
-TRAIN_LOSSES = {
-    'BINARY_CROSSENTROPY': keras.losses.BinaryCrossentropy(),
-    'MAE': keras.losses.MeanAbsoluteError(),
-    'MSE': keras.losses.MeanSquaredError(),
-    'SSIM': make_ssim_loss()}
+def make_loss(loss_name: str) -> Callable:
+    if loss_name == 'BINARY_CROSSENTROPY':
+        return keras.losses.BinaryCrossentropy()
+    if loss_name == 'MAE':
+        return keras.losses.MeanAbsoluteError()
+    if loss_name == 'MSE':
+        return keras.losses.MeanSquaredError()
+    if loss_name == 'SSIM':
+        return make_ssim_loss()
+    if loss_name == 'LPIPS':
+        return make_lpips_loss()
+
+    raise ValueError(
+        f'Loss name passed "{loss_name}" is invalid or not supported')
 
 
 class Training:
@@ -163,7 +172,7 @@ def make_params(params_path: Path, model_type: Models) -> Dict[str, Any]:
     params['load']['dataset'] = Dataset[params['load']['dataset']]
     prep = params['load']['preprocess']
     prep['interpolation_mode'] = InterpolationMode[prep['interpolation_mode']]
-    params['train']['loss'] = TRAIN_LOSSES[params['train']['loss']]
+    params['train']['loss'] = make_loss(params['train']['loss'])
 
     return params
 
