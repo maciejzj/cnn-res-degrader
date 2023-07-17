@@ -7,6 +7,13 @@ of real-life high and low-resolution images from the Proba-V satellite mission.
 Created as a part of data augmentation and generation for super-resolution
 project.
 
+This is part of a research project published at:
+
+M. Ziaja, J. Nalepa and M. Kawulok, "Data Augmentation for Multi-Image 
+Super-Resolution," IGARSS 2022 - 2022 IEEE International Geoscience and 
+Remote Sensing Symposium, Kuala Lumpur, Malaysia, 2022, pp. 119-122,
+[doi: 10.1109/IGARSS46834.2022.9884609](https://ieeexplore.ieee.org/document/9884609).
+
 ## Running the project
 
 The data is managed mostly by the [DVC](https://dvc.org) system. To obtain
